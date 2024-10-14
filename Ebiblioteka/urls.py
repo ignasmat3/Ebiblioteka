@@ -1,9 +1,19 @@
 from django.urls import path
-from .views import get_book,create_book, book_detail
+from Ebiblioteka import views
 
 urlpatterns = [
-    path('book/', get_book, name='get_book'),
-    path('create/', create_book, name='create_book'),
+    # User
+    path('users/', views.user_list, name='user-list'),
+    path('users/register/', views.user_create, name='user-create'),
+    path('users/<int:pk>/', views.user_detail, name='user-detail'),
+    path('users/<int:pk>/update/', views.user_update_delete, name='user-update-delete'),
 
-    path('book/<int:pk>', book_detail, name='book_detail'),
+    # Book
+    path('books/', views.book_list_create, name='book-list-create'),
+    path('books/<int:pk>/', views.book_detail, name='book-detail'),
+    path('books/<int:book_id>/comments/', views.book_comments, name='book-comments'),
+
+    # Comment
+    path('comments/', views.comment_list_create, name='comment-list-create'),
+    path('comments/<int:pk>/', views.comment_detail, name='comment-detail'),
 ]

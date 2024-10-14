@@ -32,13 +32,14 @@ ALLOWED_HOSTS = []
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'Ebiblioteka',  # jūsų sukurta duomenų bazė
-        'USER': 'postgres',     # numatytasis PostgreSQL vartotojas
-        'PASSWORD': 'Bergis123@',  # slaptažodis, kurį nustatėte diegimo metu
+        'NAME': 'Elb',
+        'USER': 'name',     # Pakeisti ateityje
+        'PASSWORD': 'margarita',  # Pakeisti ateityje
         'HOST': 'localhost',
         'PORT': '5432',
     }
 }
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -49,8 +50,6 @@ INSTALLED_APPS = [
     'Ebiblioteka.apps.EbibliotekaConfig',
     'rest_framework',
     'corsheaders',
-
-
 ]
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
@@ -96,12 +95,8 @@ WSGI_APPLICATION = 'djangoProject2.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': '',
-        'USER': '',
-        'PASSWORD': '',
-        'HOST': '',
-        'PORT': '',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
