@@ -1,19 +1,17 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 
-class User(models.Model):
+class User(AbstractUser):
     ROLE_CHOICES = (
         ('guest', 'Guest'),
         ('reader', 'Reader'),
         ('librarian', 'Librarian'),
         ('admin', 'Admin'),
     )
-    name = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)
-    password = models.CharField(max_length=255)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='guest')
 
     def __str__(self):
-        return self.name
+        return self.username
 
 class Book(models.Model):
     title = models.CharField(max_length=255)
