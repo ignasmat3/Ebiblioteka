@@ -89,7 +89,22 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'djangoProject2.wsgi.application'
 
-
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_SCHEMA_CLASS':(
+        'drf_spectacular.openapi.AutoSchema',
+    ),
+}
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Library API',
+    'DESCRIPTION': 'API for managing library resources such as books, comments, and users.',
+    'VERSION': '1.0.0',
+}
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 

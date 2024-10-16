@@ -1,5 +1,6 @@
 from django.urls import path
 from Ebiblioteka import views
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
     # User
@@ -16,4 +17,8 @@ urlpatterns = [
     # Comment
     path('comments/', views.comment_list_create, name='comment-list-create'),
     path('comments/<int:pk>/', views.comment_detail, name='comment-detail'),
+
+    #OPENAPI
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 ]
