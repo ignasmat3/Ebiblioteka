@@ -34,6 +34,8 @@ urlpatterns = [
     path('comments/', views.comment_list_create, name='comment-list-create'),
     path('comments/<int:pk>/', views.comment_detail, name='comment-detail'),
 
+    path('reservations/', views.reservation_list_create, name='reservation-list-create'),
+    path('reservations/<int:pk>/', views.reservation_detail, name='reservation-detail'),
     # Swagger/OpenAPI URLs
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),

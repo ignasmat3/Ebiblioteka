@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Book, Comment, User
+from .models import Book, Comment, User, Reservation
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
@@ -44,3 +44,7 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         fields = '__all__'
 
+class ReservationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Reservation
+        fields = '__all__'

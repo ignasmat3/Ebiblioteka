@@ -1,8 +1,8 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import BookSerializer, CommentSerializer, UserSerializer
-from .models import Book, Comment, User
+from .serializers import BookSerializer, CommentSerializer, UserSerializer, ReservationSerializer
+from .models import Book, Comment, User, Reservation
 from django.shortcuts import get_object_or_404
 
 # ----------------- Book Views -----------------
@@ -70,12 +70,22 @@ def comment_list_create(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 def book_comments(request, book_id):
     book = get_object_or_404(Book, pk=book_id)
-    comments = book.comments.all()
-    serializer = CommentSerializer(comments, many=True)
-    return Response(serializer.data)
+
+    if request.method == 'GET':
+        comments = book.comments.all()
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        # Create a new comment for the book
+        serializer = CommentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(book=book, user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'PUT', 'DELETE'])
 def comment_detail(request, pk):
@@ -135,3 +145,38 @@ def user_list(request):
     users = User.objects.all()
     serializer = UserSerializer(users, many=True)
     return Response(serializer.data)
+
+# ----------------- Rezervacija Views -----------------
+@api_view(['GET', 'POST'])
+def reservation_list_create(request):
+    if request.method == 'GET':
+        reservations = Reservation.objects.all()
+        serializer = ReservationSerializer(reservations, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        serializer = ReservationSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+def reservation_detail(request, pk):
+    reservation = get_object_or_404(Reservation, pk=pk)
+
+    if request.method == 'GET':
+        serializer = ReservationSerializer(reservation)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = ReservationSerializer(reservation, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        reservation.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

@@ -1,0 +1,68 @@
+[
+  {
+    "model": "Ebiblioteka.user",
+    "pk": 1,
+    "fields": {
+      "username": "admin",
+      "email": "admin@example.com",
+      "password": "pbkdf2_sha256$216000$...hashed_password...",
+      "is_staff": true,
+      "is_superuser": true,
+      "role": "admin"
+    }
+  },
+  {
+    "model": "Ebiblioteka.user",
+    "pk": 2,
+    "fields": {
+      "username": "john_doe",
+      "email": "john@example.com",
+      "password": "pbkdf2_sha256$216000$...hashed_password...",
+      "is_staff": false,
+      "is_superuser": false,
+      "role": "reader"
+    }
+  },
+  {
+    "model": "Ebiblioteka.book",
+    "pk": 1,
+    "fields": {
+      "title": "Django for Beginners",
+      "author": "William S. Vincent",
+      "category": "Programming",
+      "description": "An introduction to Django for beginners.",
+      "added_date": "2020-01-15T00:00:00Z"
+    }
+  },
+  {
+    "model": "Ebiblioteka.book",
+    "pk": 2,
+    "fields": {
+      "title": "Two Scoops of Django",
+      "author": "Daniel Roy Greenfeld",
+      "category": "Programming",
+      "description": "Best practices for Django.",
+      "added_date": "2019-05-20T00:00:00Z"
+    }
+  },
+  {
+    "model": "Ebiblioteka.comment",
+    "pk": 1,
+    "fields": {
+      "user": 2,
+      "book": 1,
+      "text": "Great book for getting started with Django!",
+      "date": "2021-03-22T14:30:00Z"
+    }
+  },
+  {
+    "model": "Ebiblioteka.comment",
+    "pk": 2,
+    "fields": {
+      "user": 2,
+      "book": 2,
+      "text": "Very informative and helpful.",
+      "date": "2021-04-10T09:15:00Z"
+    }
+  }
+]

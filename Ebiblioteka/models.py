@@ -13,6 +13,8 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
+
+
 class Book(models.Model):
     title = models.CharField(max_length=255)
     author = models.CharField(max_length=255)
@@ -23,6 +25,15 @@ class Book(models.Model):
     def __str__(self):
         return self.title
 
+class Reservation(models.Model):
+    book = models.ForeignKey(Book, related_name='reservations', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='reservations', on_delete=models.CASCADE)
+    reserved_date = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=[('reserved', 'Reserved'), ('returned', 'Returned')], default='reserved')
+
+    def __str__(self):
+        return f'Reservation by {self.user.username} for {self.book.title}'
+
 class Comment(models.Model):
     book = models.ForeignKey(Book, related_name='comments', on_delete=models.CASCADE)
     user = models.ForeignKey(User, related_name='comments', on_delete=models.CASCADE)
@@ -30,4 +41,4 @@ class Comment(models.Model):
     date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'Comment by {self.user.name} on {self.book.title}'
+        return f'Comment by {self.user.username} on {self.book.title}'
