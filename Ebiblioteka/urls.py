@@ -31,6 +31,8 @@ urlpatterns = [
     path('books/<int:book_id>/comments/', views.book_comments, name='book-comments'),
 
     # Comment URLs
+    path('Category/', views.category_list_create, name='category-list-create'),
+    path('Category/<int:pk>/', views.category_detail, name='category-detail'),
     path('comments/', views.comment_list_create, name='comment-list-create'),
     path('comments/<int:pk>/', views.comment_detail, name='comment-detail'),
 

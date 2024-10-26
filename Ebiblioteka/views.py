@@ -1,9 +1,13 @@
+from .serializers import BookSerializer, CommentSerializer, UserSerializer,CategorySerializer, ReservationSerializer
+from .models import Book, Comment, User, Reservation, Category
+from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import BookSerializer, CommentSerializer, UserSerializer, ReservationSerializer
-from .models import Book, Comment, User, Reservation
-from django.shortcuts import get_object_or_404
+from .serializers import CommentSerializer
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 # ----------------- Book Views -----------------
 
@@ -11,47 +15,42 @@ from django.shortcuts import get_object_or_404
 def book_list_create(request):
     if request.method == 'GET':
         books = Book.objects.all()
-        # Filtravimas pagal pavadinimą, autorių ar kategoriją
+        # Filtering by title, author, or category name
         title = request.GET.get('title')
         author = request.GET.get('author')
-        category = request.GET.get('category')
+        category_name = request.GET.get('category')
         if title:
             books = books.filter(title__icontains=title)
         if author:
             books = books.filter(author__icontains=author)
-        if category:
-            books = books.filter(category__icontains=category)
+        if category_name:
+            books = books.filter(category__name__icontains=category_name)
         serializer = BookSerializer(books, many=True)
         return Response(serializer.data)
-
     elif request.method == 'POST':
-        # Tik bibliotekininkams ir administratoriams (šiuo metu nenaudojame leidimų)
         serializer = BookSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 @api_view(['GET', 'PUT', 'DELETE'])
 def book_detail(request, pk):
     book = get_object_or_404(Book, pk=pk)
-
     if request.method == 'GET':
         serializer = BookSerializer(book)
         return Response(serializer.data)
-
     elif request.method == 'PUT':
-        # Tik bibliotekininkams ir administratoriams
         serializer = BookSerializer(book, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
     elif request.method == 'DELETE':
-        # Tik bibliotekininkams ir administratoriams
         book.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 # ----------------- Comment Views -----------------
 
@@ -63,10 +62,14 @@ def comment_list_create(request):
         return Response(serializer.data)
 
     elif request.method == 'POST':
-        # Tik skaitytojams ir aukštesniems
         serializer = CommentSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(user=request.user)  # Čia priskiriame vartotoją
+            if request.user.is_authenticated:
+                serializer.save(user=request.user)
+            else:
+                # Assign a default user or handle anonymous users appropriately
+                default_user = User.objects.first()  # Ensure at least one user exists
+                serializer.save(user=default_user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -154,10 +157,16 @@ def reservation_list_create(request):
         serializer = ReservationSerializer(reservations, many=True)
         return Response(serializer.data)
 
+
     elif request.method == 'POST':
         serializer = ReservationSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(user=request.user)
+            if request.user.is_authenticated:
+                serializer.save(user=request.user)
+            else:
+                # Handle anonymous users (e.g., assign a default user)
+                default_user = User.objects.get(pk=1)  # Ensure this user exists
+                serializer.save(user=default_user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -179,4 +188,34 @@ def reservation_detail(request, pk):
 
     elif request.method == 'DELETE':
         reservation.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+# ----------------- Category Views -----------------
+
+@api_view(['GET', 'POST'])
+def category_list_create(request):
+    if request.method == 'GET':
+        categories = Category.objects.all()
+        serializer = CategorySerializer(categories, many=True)
+        return Response(serializer.data)
+    elif request.method == 'POST':
+        serializer = CategorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET', 'PUT', 'DELETE'])
+def category_detail(request, pk):
+    category = get_object_or_404(Category, pk=pk)
+    if request.method == 'GET':
+        serializer = CategorySerializer(category)
+        return Response(serializer.data)
+    elif request.method == 'PUT':
+        serializer = CategorySerializer(category, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    elif request.method == 'DELETE':
+        category.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

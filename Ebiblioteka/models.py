@@ -1,5 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth import get_user_model
+from django.conf import settings
+
 
 class User(AbstractUser):
     ROLE_CHOICES = (
@@ -14,8 +17,14 @@ class User(AbstractUser):
         return self.username
 
 
+class Category(models.Model):
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
 
 class Book(models.Model):
+    category = models.ForeignKey(Category,related_name='books', on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
     author = models.CharField(max_length=255)
     description = models.TextField()
@@ -27,7 +36,7 @@ class Book(models.Model):
 
 class Reservation(models.Model):
     book = models.ForeignKey(Book, related_name='reservations', on_delete=models.CASCADE)
-    user = models.ForeignKey(User, related_name='reservations', on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='reservations', on_delete=models.CASCADE)
     reserved_date = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=[('reserved', 'Reserved'), ('returned', 'Returned')], default='reserved')
 
@@ -36,7 +45,7 @@ class Reservation(models.Model):
 
 class Comment(models.Model):
     book = models.ForeignKey(Book, related_name='comments', on_delete=models.CASCADE)
-    user = models.ForeignKey(User, related_name='comments', on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='comments', on_delete=models.CASCADE)
     text = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
 
