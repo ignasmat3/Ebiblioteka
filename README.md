@@ -126,3 +126,478 @@ Taikomosios srities objektai:
      - Ištrinti komentarą: DELETE /api/comments/{id}/ (tik komentaro autoriui arba administratoriams)
      - Gauti komentarų sąrašą: GET /api/comments/
      - Hierarchinis metodas: GET /api/books/{book_id}/comments/ (gauti konkrečios knygos komentarus)
+
+
+OPENAPI json file
+
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "E-biblioteka API",
+        "description": "API documentation for E-biblioteka",
+        "version": "v1"
+    },
+    "host": "127.0.0.1:8000",
+    "schemes": [
+        "http"
+    ],
+    "basePath": "/Ebiblioteka",
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "securityDefinitions": {
+        "Basic": {
+            "type": "basic"
+        }
+    },
+    "security": [
+        {
+            "Basic": []
+        }
+    ],
+    "paths": {
+        "/Category/": {
+            "get": {
+                "operationId": "Category_list",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "Category"
+                ]
+            },
+            "post": {
+                "operationId": "Category_create",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "Category"
+                ]
+            },
+            "parameters": []
+        },
+        "/Category/{id}/": {
+            "get": {
+                "operationId": "Category_read",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "Category"
+                ]
+            },
+            "put": {
+                "operationId": "Category_update",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "Category"
+                ]
+            },
+            "delete": {
+                "operationId": "Category_delete",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "Category"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/books/": {
+            "get": {
+                "operationId": "books_list",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "books"
+                ]
+            },
+            "post": {
+                "operationId": "books_create",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "books"
+                ]
+            },
+            "parameters": []
+        },
+        "/books/{book_id}/comments/": {
+            "get": {
+                "operationId": "books_comments_list",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "books"
+                ]
+            },
+            "post": {
+                "operationId": "books_comments_create",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "books"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "book_id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/books/{id}/": {
+            "get": {
+                "operationId": "books_read",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "books"
+                ]
+            },
+            "put": {
+                "operationId": "books_update",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "books"
+                ]
+            },
+            "delete": {
+                "operationId": "books_delete",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "books"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/comments/": {
+            "get": {
+                "operationId": "comments_list",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "comments"
+                ]
+            },
+            "post": {
+                "operationId": "comments_create",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "comments"
+                ]
+            },
+            "parameters": []
+        },
+        "/comments/{id}/": {
+            "get": {
+                "operationId": "comments_read",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "comments"
+                ]
+            },
+            "put": {
+                "operationId": "comments_update",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "comments"
+                ]
+            },
+            "delete": {
+                "operationId": "comments_delete",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "comments"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/reservations/": {
+            "get": {
+                "operationId": "reservations_list",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "reservations"
+                ]
+            },
+            "post": {
+                "operationId": "reservations_create",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "reservations"
+                ]
+            },
+            "parameters": []
+        },
+        "/reservations/{id}/": {
+            "get": {
+                "operationId": "reservations_read",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "reservations"
+                ]
+            },
+            "put": {
+                "operationId": "reservations_update",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "reservations"
+                ]
+            },
+            "delete": {
+                "operationId": "reservations_delete",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "reservations"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/users/": {
+            "get": {
+                "operationId": "users_list",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "users"
+                ]
+            },
+            "parameters": []
+        },
+        "/users/register/": {
+            "post": {
+                "operationId": "users_register_create",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "users"
+                ]
+            },
+            "parameters": []
+        },
+        "/users/{id}/": {
+            "get": {
+                "operationId": "users_read",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "users"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/users/{id}/update/": {
+            "put": {
+                "operationId": "users_update_update",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "users"
+                ]
+            },
+            "delete": {
+                "operationId": "users_update_delete",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "users"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        }
+    },
+    "definitions": {}
+}
