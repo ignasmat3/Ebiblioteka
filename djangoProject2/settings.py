@@ -28,13 +28,13 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 AUTH_USER_MODEL = 'Ebiblioteka.User'
-# Application definition
+# # Application definition
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'myproject',
-        'USER': 'myuser',
-        'PASSWORD': 'mypassword',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'Elektro',
+        'USER': 'postgres',
+        'PASSWORD': 'Hermis123@',
         'HOST': 'localhost',
         'PORT': '5432',
     }

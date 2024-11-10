@@ -1,32 +1,58 @@
 [
     {
-        "model": "Ebiblioteka.user",
+        "model": "Ebiblioteka.category",
         "pk": 1,
         "fields": {
-            "username": "sampleuser",
-            "role": "reader",
-            "password": "hashed_password",
-            "email": "sampleuser@example.com",
-            "first_name": "Sample",
-            "last_name": "User"
+            "name": "Science Fiction"
         }
     },
     {
         "model": "Ebiblioteka.category",
-        "pk": 1,
+        "pk": 2,
         "fields": {
-            "name": "Fiction"
+            "name": "Mystery"
         }
     },
     {
         "model": "Ebiblioteka.book",
         "pk": 1,
         "fields": {
-            "title": "Sample Book",
-            "author": "Sample Author",
-            "description": "This is a sample description.",
             "category": 1,
-            "added_date": "2024-10-25T12:00:00Z"
+            "title": "The Hitchhiker's Guide to the Galaxy",
+            "author": "Douglas Adams",
+            "description": "A comedy science fiction series.",
+            "added_date": "2024-11-08T12:00:00Z"
+        }
+    },
+    {
+        "model": "Ebiblioteka.book",
+        "pk": 2,
+        "fields": {
+            "category": 2,
+            "title": "The Hound of the Baskervilles",
+            "author": "Arthur Conan Doyle",
+            "description": "A mystery novel featuring Sherlock Holmes.",
+            "added_date": "2024-11-08T12:00:00Z"
+        }
+    },
+    {
+        "model": "Ebiblioteka.user",
+        "pk": 1,
+        "fields": {
+            "username": "test_user",
+            "email": "test_user@example.com",
+            "password": "pbkdf2_sha256$320000$whateverHashedPassword$somelonghashstringhere",
+            "role": "reader"
+        }
+    },
+    {
+        "model": "Ebiblioteka.user",
+        "pk": 2,
+        "fields": {
+            "username": "librarian_user",
+            "email": "librarian@example.com",
+            "password": "pbkdf2_sha256$320000$anotherHashedPassword$stringhere",
+            "role": "librarian"
         }
     },
     {
@@ -35,7 +61,17 @@
         "fields": {
             "book": 1,
             "user": 1,
-            "reserved_date": "2024-10-25T12:00:00Z",
+            "reserved_date": "2024-11-08T12:00:00Z",
+            "status": "reserved"
+        }
+    },
+    {
+        "model": "Ebiblioteka.reservation",
+        "pk": 2,
+        "fields": {
+            "book": 2,
+            "user": 2,
+            "reserved_date": "2024-11-08T12:00:00Z",
             "status": "reserved"
         }
     },
@@ -45,8 +81,18 @@
         "fields": {
             "book": 1,
             "user": 1,
-            "text": "This is a sample comment.",
-            "date": "2024-10-25T12:00:00Z"
+            "text": "This book is hilarious and a must-read!",
+            "date": "2024-11-08T12:00:00Z"
+        }
+    },
+    {
+        "model": "Ebiblioteka.comment",
+        "pk": 2,
+        "fields": {
+            "book": 2,
+            "user": 2,
+            "text": "One of the best Sherlock Holmes mysteries.",
+            "date": "2024-11-08T12:00:00Z"
         }
     }
 ]

@@ -214,8 +214,26 @@ def category_detail(request, pk):
         serializer = CategorySerializer(category, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            missing_required_fields = []
+            for field, errors in serializer.errors.items():
+                for error in errors:
+                    if error.code == 'blank':
+                        missing_required_fields.append(field)
+
+            if missing_required_fields:
+                # Return 422 Unprocessable Entity when required fields are missing
+                return Response(
+                    {'error': 'Unprocessable Entity', 'details': serializer.errors},
+                    status=status.HTTP_422_UNPROCESSABLE_ENTITY
+                )
+            else:
+                # Return 400 Bad Request for other validation errors
+                return Response(
+                    {'error': 'Bad Request', 'details': serializer.errors},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
     elif request.method == 'DELETE':
         category.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

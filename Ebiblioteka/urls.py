@@ -19,6 +19,10 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
+
+    # Category URLs
+    path('categories/', views.category_list_create, name='category-list-create'),
+    path('categories/<int:pk>/', views.category_detail, name='category-detail'),
     # User URLs
     path('users/', views.user_list, name='user-list'),
     path('users/register/', views.user_create, name='user-create'),

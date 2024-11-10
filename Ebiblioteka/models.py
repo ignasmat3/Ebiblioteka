@@ -28,7 +28,6 @@ class Book(models.Model):
     title = models.CharField(max_length=255)
     author = models.CharField(max_length=255)
     description = models.TextField()
-    category = models.CharField(max_length=100)
     added_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

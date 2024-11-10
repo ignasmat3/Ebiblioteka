@@ -34,18 +34,16 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-
-class CategorySerializer(serializers.ModelSerializer):
-    books = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-
-    class Meta:
-        model = Category
-        fields = ['id', 'name', 'books']
-
 class BookSerializer(serializers.ModelSerializer):
     class Meta:
         model = Book
         fields = ['id', 'category', 'title', 'author', 'description', 'added_date']
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'books']
+
 
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
