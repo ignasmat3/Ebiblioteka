@@ -6,6 +6,14 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import CommentSerializer
 from django.contrib.auth import get_user_model
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import CustomTokenObtainPairSerializer
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
 
 User = get_user_model()
 
@@ -91,6 +99,7 @@ def book_comments(request, book_id):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
 def comment_detail(request, pk):
     comment = get_object_or_404(Comment, pk=pk)
 
@@ -99,30 +108,37 @@ def comment_detail(request, pk):
         return Response(serializer.data)
 
     elif request.method == 'PUT':
-        # Tik komentaro autoriui
+        if request.user != comment.user and request.user.role != 'admin':
+            return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
         serializer = CommentSerializer(comment, data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(user=request.user)  # Ensure the user is correctly set
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
-        # Tik komentaro autoriui arba administratoriams
+        if request.user != comment.user and request.user.role != 'admin':
+            return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
         comment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 # ----------------- User Views -----------------
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def user_create(request):
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response({'detail': 'User created successfully.'}, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def user_detail(request, pk):
+    if request.user.pk != pk and not request.user.is_staff:
+        return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
     user = get_object_or_404(User, pk=pk)
     serializer = UserSerializer(user)
     return Response(serializer.data)
@@ -151,24 +167,24 @@ def user_list(request):
 
 # ----------------- Rezervacija Views -----------------
 @api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
 def reservation_list_create(request):
     if request.method == 'GET':
-        reservations = Reservation.objects.all()
+        # Allow users to see their own reservations or all if they are staff
+        if request.user.role == 'admin' or request.user.role == 'librarian':
+            reservations = Reservation.objects.all()
+        else:
+            reservations = Reservation.objects.filter(user=request.user)
         serializer = ReservationSerializer(reservations, many=True)
         return Response(serializer.data)
-
 
     elif request.method == 'POST':
         serializer = ReservationSerializer(data=request.data)
         if serializer.is_valid():
-            if request.user.is_authenticated:
-                serializer.save(user=request.user)
-            else:
-                # Handle anonymous users (e.g., assign a default user)
-                default_user = User.objects.get(pk=1)  # Ensure this user exists
-                serializer.save(user=default_user)
+            serializer.save(user=request.user)  # Automatically assign the authenticated user
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
