@@ -3,27 +3,72 @@ from .models import Book, Comment, Category
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from .models import UserSession
+from django.utils.crypto import get_random_string
 
 User = get_user_model()
 #changed naming
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
+        user = self.user
 
-        # Add role to the token response
-        data['role'] = self.user.role
+        # Invalidate existing session
+        UserSession.objects.filter(user=user).delete()
+
+        # Create new session
+        session_key = get_random_string(length=40)
+        refresh_token = data['refresh']
+
+        UserSession.objects.create(
+            user=user,
+            session_key=session_key,
+            refresh_token=refresh_token,
+            expired=False
+        )
+
+        # Include session_key in the response
+        data['session_key'] = session_key
 
         return data
 
-    def get_token(self, user):
-        token = super().get_token(user)
 
-        # Add custom claims
-        token['role'] = user.role
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
+from rest_framework import serializers
+from .models import UserSession
 
-        return token
+# serializers.py
+class CustomTokenRefreshSerializer(TokenRefreshSerializer):
+    def validate(self, attrs):
+        request = self.context['request']
+        refresh_token = request.COOKIES.get('refresh_token')
+        session_key = request.COOKIES.get('session_key')
 
-    #def extract claims or specific field  user id/ user name and map to database
+        if not refresh_token or not session_key:
+            raise serializers.ValidationError('Authentication credentials were not provided.')
+
+        # Validate session
+        try:
+            session = UserSession.objects.get(
+                refresh_token=refresh_token,
+                session_key=session_key,
+                expired=False
+            )
+        except UserSession.DoesNotExist:
+            raise serializers.ValidationError('Invalid or expired session.')
+
+        # Proceed with standard validation
+        data = super().validate({'refresh': refresh_token})
+
+        # Update the session with the new refresh token
+        new_refresh_token = data['refresh']
+        session.refresh_token = new_refresh_token
+        session.save()
+
+        return data
+
+
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])

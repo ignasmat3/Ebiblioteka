@@ -19,6 +19,16 @@ class User(AbstractUser):
         return self.username
 
 
+class UserSession(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    refresh_token = models.CharField(max_length=255)
+    session_key = models.CharField(max_length=40, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expired = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Session for {self.user.username}"
+
 class Category(models.Model):
     name = models.CharField(max_length=255)
     fk_userID = 8 #fix it
@@ -33,19 +43,23 @@ class Book(models.Model):
     description = models.TextField()
     added_date = models.DateTimeField(auto_now_add=True)
     #fk_userID
-
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name='created_books',
+        on_delete=models.CASCADE
+    )
     def __str__(self):
         return self.title
 
 # eina nx
-class Reservation(models.Model):
-    book = models.ForeignKey(Book, related_name='reservations', on_delete=models.CASCADE)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='reservations', on_delete=models.CASCADE)
-    reserved_date = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, choices=[('reserved', 'Reserved'), ('returned', 'Returned')], default='reserved')
-
-    def __str__(self):
-        return f'Reservation by {self.user.username} for {self.book.title}'
+# class Reservation(models.Model):
+#     book = models.ForeignKey(Book, related_name='reservations', on_delete=models.CASCADE)
+#     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='reservations', on_delete=models.CASCADE)
+#     reserved_date = models.DateTimeField(auto_now_add=True)
+#     status = models.CharField(max_length=20, choices=[('reserved', 'Reserved'), ('returned', 'Returned')], default='reserved')
+#
+#     def __str__(self):
+#         return f'Reservation by {self.user.username} for {self.book.title}'
 
 
 

@@ -16,12 +16,14 @@ schema_view = get_schema_view(
     public=True,
     permission_classes=(permissions.AllowAny,),
 )
-
+from django.urls import path
+from .views import CustomTokenObtainPairView, CustomTokenRefreshView, LogoutView
 urlpatterns = [
     # JWT Token Endpoints
 
-    path('/api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
+    path('api/logout/', LogoutView.as_view(), name='logout'),
  #    pasidaryk visus auth endpointus vienoje vietoje, Loginas negali grazinti refresh tokkeno per body, jis turi eiti per secured, http only cookie kuriame nurodytas pathas leid=ia j5 panaudoti tik refresh tokken endoointe
  #
  #
@@ -58,9 +60,9 @@ urlpatterns = [
     path('/comments/get', views.comment_list_get, name='comment-list-get'),
     path('/comments/put', views.comment_list_create, name='comment-list-create'),
     #Slip into separete endpoint
-    path('comments/get/<int:pk>/', views.comment_detail_get, name='comment-detail_get'),
-    path('comments/put/<int:pk>/', views.comment_detail_put, name='comment-detail_put'),
-    path('comments/delete/<int:pk>/', views.comment_detail_delete, name='comment-detail_delete'),
+    # path('comments/get/<int:pk>/', views.comment_detail_get, name='comment-detail_get'),
+    # path('comments/put/<int:pk>/', views.comment_detail_put, name='comment-detail_put'),
+    # path('comments/delete/<int:pk>/', views.comment_detail_delete, name='comment-detail_delete'),
 
     # Reservation URLs
     # path('reservations/', views.reservation_list_create, name='reservation-list-create'),

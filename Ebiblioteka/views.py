@@ -5,41 +5,141 @@ from .serializers import (
     CategorySerializer,
     CustomTokenObtainPairSerializer
 )
+
 from .models import Book, Comment, Category
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-from rest_framework import status
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import (
     IsAuthenticated,
     AllowAny,
     IsAuthenticatedOrReadOnly
 )
-from django.http import HttpResponse
-from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import BasePermission
+from rest_framework.views import APIView
 
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from .serializers import CustomTokenObtainPairSerializer, CustomTokenRefreshSerializer
+from rest_framework.response import Response
+from rest_framework import status
+from .models import UserSession
 User = get_user_model()
 from rest_framework_simplejwt.views import TokenObtainPairView
+
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from .serializers import CustomTokenObtainPairSerializer, CustomTokenRefreshSerializer
+from rest_framework.response import Response
+from rest_framework import status
+from .models import UserSession
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import CustomTokenObtainPairSerializer
+from .models import UserSession
+from django.utils.crypto import get_random_string
+from rest_framework.response import Response
+# views.py
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
-# Custom permission classes
-class IsAdminOrLibrarian(BasePermission):
-    def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.role in ['admin', 'librarian']
 
-class IsOwnerOrAdmin(BasePermission):
-    def has_object_permission(self, request, view, obj):
-        return request.user == obj.user or request.user.role == 'admin'
+    def post(self, request, *args, **kwargs):
+        # Instantiate the serializer with the request data
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.user  # Get the authenticated user from the serializer
+
+        # Call the superclass method to get the token response
+        response = super().post(request, *args, **kwargs)
+        data = response.data
+
+        # Invalidate existing session
+        UserSession.objects.filter(user=user).delete()
+
+        # Create new session
+        refresh_token = data['refresh']
+        session_key = get_random_string(length=40)
+
+        UserSession.objects.create(
+            user=user,
+            session_key=session_key,
+            refresh_token=refresh_token,
+            expired=False
+        )
+
+        # Set refresh token and session_key in HTTP-only, secure cookies
+        response.set_cookie(
+            'refresh_token',
+            refresh_token,
+            httponly=True,
+            secure=True,  # Set to True in production
+            samesite='Strict',
+        )
+        response.set_cookie(
+            'session_key',
+            session_key,
+            httponly=True,
+            secure=True,
+            samesite='Strict',
+        )
+
+        # Optionally remove refresh token from response body
+        del data['refresh']
+        return response
 
 
 
+class CustomTokenRefreshView(TokenRefreshView):
+    serializer_class = CustomTokenRefreshSerializer
 
+    def post(self, request, *args, **kwargs):
+        # Get tokens from cookies
+        refresh_token = request.COOKIES.get('refresh_token')
+        session_key = request.COOKIES.get('session_key')
 
+        if not refresh_token or not session_key:
+            return Response({'error': 'Authentication credentials were not provided.'},
+                            status=status.HTTP_401_UNAUTHORIZED)
+
+        serializer = self.get_serializer(data={
+            'refresh': refresh_token,
+            'session_key': session_key
+        })
+        serializer.is_valid(raise_exception=True)
+
+        # Update cookies with new refresh token
+        response = Response(serializer.validated_data, status=status.HTTP_200_OK)
+        new_refresh_token = serializer.validated_data.get('refresh')
+
+        response.set_cookie('refresh_token', new_refresh_token, httponly=True)
+
+        return response
+
+class LogoutView(APIView):
+    def post(self, request):
+        session_key = request.COOKIES.get('session_key')
+        if not session_key:
+            return Response({'error': 'Session key not provided.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            session = UserSession.objects.get(session_key=session_key)
+            session.expired = True
+            session.save()
+            response = Response({'success': 'Logged out successfully.'}, status=status.HTTP_200_OK)
+            response.delete_cookie('session_key')
+            response.delete_cookie('refresh_token')
+            return response
+        except UserSession.DoesNotExist:
+            return Response({'error': 'Invalid session key.'}, status=status.HTTP_400_BAD_REQUEST)
 
 # ----------------- Book Views -----------------
+from rest_framework import viewsets
+from .permissions import IsOwnerOrAdmin
 
+class BookViewSet(viewsets.ModelViewSet):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+    permission_classes = [IsOwnerOrAdmin]
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
 @api_view(['GET'])
 @permission_classes([AllowAny])  # Allow any for GET, check manually for POST
 def book_list_get(request):
@@ -129,41 +229,41 @@ def comment_list_create(request):
 
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated, IsOwnerOrAdmin])
-def comment_detail_get(request, pk):
-    comment = get_object_or_404(Comment, pk=pk)
-    # Check object permissions // Pasiemi bld i6 tokeno info, ziuri tada kap esas roles i jei role atitink kurej, ziur ar tas pats ir yr pagal id + admin1 pa-i8r jei ten sansa tai tada id nesvarbu i leidi trint
-    if not request.user == comment.user and request.user.role != 'admin':
-        return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
-    serializer = CommentSerializer(comment)
-    return Response(serializer.data)
-
-
-@api_view(['PUT'])
-@permission_classes([IsAuthenticated, IsOwnerOrAdmin])
-def comment_detail_put(request, pk):
-    comment = get_object_or_404(Comment, pk=pk)
-    # Check object permissions // Pasiemi bld i6 tokeno info, ziuri tada kap esas roles i jei role atitink kurej, ziur ar tas pats ir yr pagal id + admin1 pa-i8r jei ten sansa tai tada id nesvarbu i leidi trint
-    if not request.user == comment.user and request.user.role != 'admin':
-        return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
-
-    serializer = CommentSerializer(comment, data=request.data)
-    if serializer.is_valid():
-        serializer.save(user=request.user)  # Ensure the user is correctly set
-        return Response(serializer.data)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(['DELETE'])
-@permission_classes([IsAuthenticated, IsOwnerOrAdmin])
-def comment_detail_delete(request, pk):
-    comment = get_object_or_404(Comment, pk=pk)
-    # Check object permissions // Pasiemi bld i6 tokeno info, ziuri tada kap esas roles i jei role atitink kurej, ziur ar tas pats ir yr pagal id + admin1 pa-i8r jei ten sansa tai tada id nesvarbu i leidi trint
-    if not request.user == comment.user and request.user.role != 'admin':
-        return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
-    comment.delete()
-    return Response(status=status.HTTP_204_NO_CONTENT)
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated, IsOwnerOrAdmin])
+# def comment_detail_get(request, pk):
+#     comment = get_object_or_404(Comment, pk=pk)
+#     # Check object permissions // Pasiemi bld i6 tokeno info, ziuri tada kap esas roles i jei role atitink kurej, ziur ar tas pats ir yr pagal id + admin1 pa-i8r jei ten sansa tai tada id nesvarbu i leidi trint
+#     if not request.user == comment.user and request.user.role != 'admin':
+#         return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
+#     serializer = CommentSerializer(comment)
+#     return Response(serializer.data)
+#
+#
+# @api_view(['PUT'])
+# @permission_classes([IsAuthenticated, IsOwnerOrAdmin])
+# def comment_detail_put(request, pk):
+#     comment = get_object_or_404(Comment, pk=pk)
+#     # Check object permissions // Pasiemi bld i6 tokeno info, ziuri tada kap esas roles i jei role atitink kurej, ziur ar tas pats ir yr pagal id + admin1 pa-i8r jei ten sansa tai tada id nesvarbu i leidi trint
+#     if not request.user == comment.user and request.user.role != 'admin':
+#         return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
+#
+#     serializer = CommentSerializer(comment, data=request.data)
+#     if serializer.is_valid():
+#         serializer.save(user=request.user)  # Ensure the user is correctly set
+#         return Response(serializer.data)
+#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#
+#
+# @api_view(['DELETE'])
+# @permission_classes([IsAuthenticated, IsOwnerOrAdmin])
+# def comment_detail_delete(request, pk):
+#     comment = get_object_or_404(Comment, pk=pk)
+#     # Check object permissions // Pasiemi bld i6 tokeno info, ziuri tada kap esas roles i jei role atitink kurej, ziur ar tas pats ir yr pagal id + admin1 pa-i8r jei ten sansa tai tada id nesvarbu i leidi trint
+#     if not request.user == comment.user and request.user.role != 'admin':
+#         return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
+#     comment.delete()
+#     return Response(status=status.HTTP_204_NO_CONTENT)
 
 # ----------------- User Views -----------------
 
