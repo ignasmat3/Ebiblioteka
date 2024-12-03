@@ -31,7 +31,11 @@ class UserSession(models.Model):
 
 class Category(models.Model):
     name = models.CharField(max_length=255)
-    fk_userID = 8 #fix it
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name='created_categories',
+        on_delete=models.CASCADE
+    )
 
     def __str__(self):
         return self.name

@@ -44,27 +44,23 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         # Instantiate the serializer with the request data
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
         user = serializer.user  # Get the authenticated user from the serializer
-
-        # Call the superclass method to get the token response
-        response = super().post(request, *args, **kwargs)
-        data = response.data
 
         # Invalidate existing session
         UserSession.objects.filter(user=user).delete()
 
         # Create new session
         refresh_token = data['refresh']
-        session_key = get_random_string(length=40)
-
-        UserSession.objects.create(
-            user=user,
-            session_key=session_key,
-            refresh_token=refresh_token,
-            expired=False
-        )
+        session_key = data['session_key']  # Already generated in the serializer
 
         # Set refresh token and session_key in HTTP-only, secure cookies
+        response = Response({
+            'access': data['access'],
+            # 'refresh': data['refresh'],  # Optionally exclude this from the response body
+            # 'session_key': data['session_key'],  # Optionally exclude if using cookies
+        }, status=status.HTTP_200_OK)
+
         response.set_cookie(
             'refresh_token',
             refresh_token,
@@ -81,8 +77,10 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         )
 
         # Optionally remove refresh token from response body
-        del data['refresh']
+        # del data['refresh']  # Already handled by excluding from response data
+
         return response
+
 
 
 
@@ -108,7 +106,18 @@ class CustomTokenRefreshView(TokenRefreshView):
         response = Response(serializer.validated_data, status=status.HTTP_200_OK)
         new_refresh_token = serializer.validated_data.get('refresh')
 
-        response.set_cookie('refresh_token', new_refresh_token, httponly=True)
+        # Remove refresh token from response data
+        if 'refresh' in response.data:
+            del response.data['refresh']
+
+        # Update the refresh token cookie
+        response.set_cookie(
+            'refresh_token',
+            new_refresh_token,
+            httponly=True,
+            secure=True,  # Set to True in production
+            samesite='Strict',
+        )
 
         return response
 

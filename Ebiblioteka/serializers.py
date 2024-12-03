@@ -2,24 +2,43 @@ from rest_framework import serializers
 from .models import Book, Comment, Category
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import UserSession
+from rest_framework_simplejwt.serializers import (
+    TokenObtainPairSerializer,
+    TokenRefreshSerializer  # Added import here
+)
 from django.utils.crypto import get_random_string
+from .models import UserSession
+from django.contrib.auth import get_user_model
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
 
 User = get_user_model()
-#changed naming
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
+        # Authenticate the user and get the tokens
         data = super().validate(attrs)
         user = self.user
+
+        # Get the refresh token
+        refresh = self.get_token(user)
+
+        # Create access token from refresh token
+        access = refresh.access_token
+
+        # Add custom claims to access token only
+        access['role'] = user.role
+
+        # Update data with the tokens
+        data['access'] = str(access)
+        data['refresh'] = str(refresh)
 
         # Invalidate existing session
         UserSession.objects.filter(user=user).delete()
 
         # Create new session
         session_key = get_random_string(length=40)
-        refresh_token = data['refresh']
+        refresh_token = str(refresh)
 
         UserSession.objects.create(
             user=user,
@@ -34,11 +53,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return data
 
 
-from rest_framework_simplejwt.serializers import TokenRefreshSerializer
-from rest_framework import serializers
-from .models import UserSession
 
-# serializers.py
 class CustomTokenRefreshSerializer(TokenRefreshSerializer):
     def validate(self, attrs):
         request = self.context['request']
@@ -58,17 +73,35 @@ class CustomTokenRefreshSerializer(TokenRefreshSerializer):
         except UserSession.DoesNotExist:
             raise serializers.ValidationError('Invalid or expired session.')
 
-        # Proceed with standard validation
-        data = super().validate({'refresh': refresh_token})
+        # Manually validate the refresh token
+        try:
+            refresh = RefreshToken(refresh_token)
+        except Exception:
+            raise serializers.ValidationError('Invalid refresh token')
 
-        # Update the session with the new refresh token
-        new_refresh_token = data['refresh']
-        session.refresh_token = new_refresh_token
-        session.save()
+        # Create new access token
+        access = refresh.access_token
+
+        # Add custom claims to access token only
+        user = User.objects.get(id=refresh['user_id'])
+        access['role'] = user.role
+
+        data = {'access': str(access)}
+
+        # Optionally rotate the refresh token
+        if True:  # Replace with your condition for rotating refresh tokens
+            refresh.set_jti()
+            refresh.set_exp()
+            new_refresh_token = str(refresh)
+            data['refresh'] = new_refresh_token
+
+            # Update the session with the new refresh token
+            session.refresh_token = new_refresh_token
+            session.save()
+        else:
+            data['refresh'] = refresh_token
 
         return data
-
-
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
@@ -120,4 +153,3 @@ class CommentSerializer(serializers.ModelSerializer):
 #         fields = '__all__'
 #         read_only_fields = ['user', 'date_reserved']
 #
-
