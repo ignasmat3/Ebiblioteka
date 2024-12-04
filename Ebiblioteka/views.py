@@ -140,15 +140,14 @@ class LogoutView(APIView):
 
 # ----------------- Book Views -----------------
 from rest_framework import viewsets
-from .permissions import IsOwnerOrAdmin
 
-class BookViewSet(viewsets.ModelViewSet):
-    queryset = Book.objects.all()
-    serializer_class = BookSerializer
-    permission_classes = [IsOwnerOrAdmin]
-
-    def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+# class BookViewSet(viewsets.ModelViewSet):
+#     queryset = Book.objects.all()
+#     serializer_class = BookSerializer
+#     permission_classes = [IsOwnerOrAdmin]
+#
+#     def perform_create(self, serializer):
+#         serializer.save(created_by=self.request.user)
 @api_view(['GET'])
 @permission_classes([AllowAny])  # Allow any for GET, check manually for POST
 def book_list_get(request):
@@ -288,11 +287,12 @@ def user_create(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_detail_get(request, pk):
-    if request.user.pk != pk and request.user.role != 'admin':
+    if request.user.pk != int(pk) and request.user.role != 'admin':
         return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
     user = get_object_or_404(User, pk=pk)
     serializer = UserSerializer(user)
     return Response(serializer.data)
+
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
