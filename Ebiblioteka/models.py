@@ -31,48 +31,28 @@ class UserSession(models.Model):
 
 class Category(models.Model):
     name = models.CharField(max_length=255)
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        related_name='created_categories',
-        on_delete=models.CASCADE
-    )
 
     def __str__(self):
         return self.name
 
 class Book(models.Model):
-    category = models.ForeignKey(Category,related_name='books', on_delete=models.CASCADE)
+    category = models.ForeignKey(
+        Category,
+        related_name='books',
+        on_delete=models.CASCADE
+    )
     title = models.CharField(max_length=255)
     author = models.CharField(max_length=255)
     description = models.TextField()
     added_date = models.DateTimeField(auto_now_add=True)
-    #fk_userID
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        related_name='created_books',
-        on_delete=models.CASCADE
-    )
+
     def __str__(self):
         return self.title
-
-# eina nx
-# class Reservation(models.Model):
-#     book = models.ForeignKey(Book, related_name='reservations', on_delete=models.CASCADE)
-#     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='reservations', on_delete=models.CASCADE)
-#     reserved_date = models.DateTimeField(auto_now_add=True)
-#     status = models.CharField(max_length=20, choices=[('reserved', 'Reserved'), ('returned', 'Returned')], default='reserved')
-#
-#     def __str__(self):
-#         return f'Reservation by {self.user.username} for {self.book.title}'
-
-
 
 
 # create a session that tracks user interaction with api. You may also save the refrash token inside if it is valid for a reasonably long time.
 # Session can be revoked after the user loggs off reventing the abuse of the access tokken - if the session is not valid tokken is not refreshed
 #make sure that session is unique for a user at the time
-
-
 
 
 class Comment(models.Model):

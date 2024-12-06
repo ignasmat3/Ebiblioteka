@@ -131,7 +131,7 @@ class UserSerializer(serializers.ModelSerializer):
 class BookSerializer(serializers.ModelSerializer):
     class Meta:
         model = Book
-        fields = ['id', 'category', 'title', 'author', 'description', 'added_date']
+        fields = '__all__'
 
 class CategorySerializer(serializers.ModelSerializer):
     books = BookSerializer(many=True, read_only=True)
@@ -146,10 +146,3 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['book', 'user', 'date']
 
-
-# class ReservationSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Reservation
-#         fields = '__all__'
-#         read_only_fields = ['user', 'date_reserved']
-#

@@ -42,37 +42,17 @@
             "username": "test_user",
             "email": "test_user@example.com",
             "password": "pbkdf2_sha256$320000$whateverHashedPassword$somelonghashstringhere",
-            "role": "reader"
+            "role": "guest"
         }
     },
     {
         "model": "Ebiblioteka.user",
         "pk": 2,
         "fields": {
-            "username": "librarian_user",
+            "username": "admin",
             "email": "librarian@example.com",
-            "password": "pbkdf2_sha256$320000$anotherHashedPassword$stringhere",
-            "role": "librarian"
-        }
-    },
-    {
-        "model": "Ebiblioteka.reservation",
-        "pk": 1,
-        "fields": {
-            "book": 1,
-            "user": 1,
-            "reserved_date": "2024-11-08T12:00:00Z",
-            "status": "reserved"
-        }
-    },
-    {
-        "model": "Ebiblioteka.reservation",
-        "pk": 2,
-        "fields": {
-            "book": 2,
-            "user": 2,
-            "reserved_date": "2024-11-08T12:00:00Z",
-            "status": "reserved"
+            "password": "admin@123",
+            "role": "admin"
         }
     },
     {

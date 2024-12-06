@@ -30,7 +30,7 @@ urlpatterns = [
  # Pasiema tavo cookie, pažiūri ar tavo sesija validi, if so, pagal tavo refresh tokena sukuria ir pateikia tau nauja acess bei pakeičia cookie viduje esantį refesh tokena
  #    Category URL
 
-    path('categories', views.category_list_create, name='category-list-create'),
+    path('categories/', views.category_list_create, name='category-list-create'),
     path('categories/get', views.category_list_get, name='category-list-get'),
 
     path('categories/get/<int:pk>', views.category_detail_get, name='category-detail_get'),
@@ -45,7 +45,7 @@ urlpatterns = [
     path('users/get/<int:pk>', views.user_detail_get, name='user-detail-get'),
 
     path('users/put/<int:pk>', views.user_update_put, name='user-update-put'),
-    path('users/delete/<int:pk>', views.user_update_delete, name='user-update-delete'),
+    path('users/delete/<int:pk>', views.user_delete, name='user-update-delete'),
 
     # Book URLs
     path('books/get', views.book_list_get, name='book-list-get'),
@@ -57,16 +57,12 @@ urlpatterns = [
     # Comment URLs
 
     #remove / after comments it should be cathegory/{cat_id}/books/{book_id}
-    path('/comments/get', views.comment_list_get, name='comment-list-get'),
-    path('/comments/put', views.comment_list_create, name='comment-list-create'),
+    path('comments/get/', views.comment_list_get, name='comment-list-get'),
+    path('comments/put', views.comment_list_create, name='comment-list-create'),
     #Slip into separete endpoint
-    # path('comments/get/<int:pk>/', views.comment_detail_get, name='comment-detail_get'),
-    # path('comments/put/<int:pk>/', views.comment_detail_put, name='comment-detail_put'),
-    # path('comments/delete/<int:pk>/', views.comment_detail_delete, name='comment-detail_delete'),
-
-    # Reservation URLs
-    # path('reservations/', views.reservation_list_create, name='reservation-list-create'),
-    # path('reservations/<int:pk>/', views.reservation_detail, name='reservation-detail'),
+    path('comments/get/<int:pk>/', views.comment_detail_get, name='comment-detail_get'),
+    path('comments/put/<int:pk>/', views.comment_detail_put, name='comment-detail_put'),
+    path('comments/delete/<int:pk>/', views.comment_detail_delete, name='comment-detail_delete'),
 
     # Swagger/OpenAPI URLs
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
