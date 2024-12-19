@@ -34,8 +34,13 @@ function CategoriesPage() {
     if (!window.confirm('Are you sure you want to delete this category?')) return;
 
     try {
+      const token = sessionStorage.getItem('access_token'); // Retrieve the token from storage
       const response = await fetch(`http://localhost:8000/Ebiblioteka/categories/${categoryId}/delete`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`, // Add the Authorization header
+          'Content-Type': 'application/json',
+        },
       });
 
       if (response.ok) {

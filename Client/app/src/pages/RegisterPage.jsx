@@ -1,4 +1,3 @@
-// pages/RegisterPage.jsx
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
@@ -31,10 +30,14 @@ function RegisterPage() {
       if (response.ok) {
         setErrorMsg(null);
         setSuccessMsg('Registration successful! Redirecting to home page...');
+
+        // Redirect and refresh
         setTimeout(() => {
           navigate('/');
+          window.location.reload(); // Refresh the page after redirect
         }, 2000);
-        console.log(response)
+
+        console.log(response);
       } else {
         const errData = await response.json();
         if (typeof errData === 'object') {

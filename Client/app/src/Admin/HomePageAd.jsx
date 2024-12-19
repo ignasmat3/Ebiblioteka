@@ -7,6 +7,7 @@ function HomePage() {
   const [displayedBooks, setDisplayedBooks] = useState([]);
   const [categoryFilter, setCategoryFilter] = useState('');
   const [titleFilter, setTitleFilter] = useState('');
+  const [errorMsg, setErrorMsg] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,6 +25,7 @@ function HomePage() {
       setDisplayedBooks(getRandomBooks(data, 5));
     } catch (err) {
       console.error('Error fetching books:', err);
+      setErrorMsg('Failed to load books. Please try again later.');
     }
   };
 
@@ -59,8 +61,12 @@ function HomePage() {
     if (!window.confirm('Are you sure you want to delete this book?')) return;
 
     try {
+      const accessToken = sessionStorage.getItem('access_token');
       const response = await fetch(`http://localhost:8000/Ebiblioteka/books/${bookId}/delete`, {
         method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
       });
 
       if (!response.ok) {
@@ -71,12 +77,14 @@ function HomePage() {
       fetchBooks();
     } catch (err) {
       console.error('Error deleting book:', err);
+      setErrorMsg('Failed to delete book. Please try again later.');
     }
   };
 
   return (
     <div>
       <h2>Search Filters</h2>
+      {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
       <input
         type="text"
         placeholder="Filter by category..."

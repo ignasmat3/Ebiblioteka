@@ -24,13 +24,16 @@ function LoginPage() {
 
         // Store the role in sessionStorage
         sessionStorage.setItem('user_role', userRole);
-        console.log(roleResponse)
-        // Redirect based on role
+
+        // Redirect based on role and refresh page
         if (userRole === 'admin') {
           navigate('/admin');
         } else {
           navigate('/features');
         }
+
+        // Force a page refresh to apply role-specific layout or behavior
+        window.location.reload();
       } else {
         console.error('Failed to fetch user role');
       }

@@ -1,10 +1,11 @@
-// pages/UserListPage.jsx
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './page.css';
 
 function UserListPage() {
   const [users, setUsers] = useState([]);
   const [errorMsg, setErrorMsg] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchUsers();
@@ -43,6 +44,10 @@ function UserListPage() {
     }
   };
 
+  const handleEditUser = (userId) => {
+    navigate(`/admin/useredit/${userId}`); // Navigate to the user edit page
+  };
+
   return (
     <div className="user-list-container">
       <h2>All Users</h2>
@@ -70,8 +75,23 @@ function UserListPage() {
                 <td>{user.role}</td>
                 <td>
                   <button
+                    onClick={() => handleEditUser(user.id)}
+                    style={{
+                      backgroundColor: '#4CAF50',
+                      color: 'white',
+                      marginRight: '10px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Edit
+                  </button>
+                  <button
                     onClick={() => handleDeleteUser(user.id)}
-                    style={{ backgroundColor: '#f44336', color: 'white', cursor: 'pointer' }}
+                    style={{
+                      backgroundColor: '#f44336',
+                      color: 'white',
+                      cursor: 'pointer',
+                    }}
                   >
                     Delete
                   </button>

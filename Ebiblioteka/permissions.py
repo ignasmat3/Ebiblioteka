@@ -9,22 +9,32 @@ from django.conf import settings
 from rest_framework.permissions import BasePermission
 from rest_framework.exceptions import PermissionDenied
 
+
 def get_role_from_token(request):
     """
     Extract the role from the access token.
     """
+    print("Entering get_role_from_token")
     auth_header = request.headers.get('Authorization')
+    print(f"Authorization Header: {auth_header}")
+
     if not auth_header:
+        print("Authorization header missing.")
         raise PermissionDenied("Authorization header missing.")
 
     try:
         token = auth_header.split(' ')[1]
+        print(f"Token: {token}")
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+        print(f"Payload: {payload}")
         return payload.get('role')
     except jwt.ExpiredSignatureError:
+        print("Token has expired.")
         raise PermissionDenied("Token has expired.")
     except jwt.InvalidTokenError:
+        print("Invalid token.")
         raise PermissionDenied("Invalid token.")
+
 
 def is_token_blacklisted(request):
     # Extract token from the Authorization header
@@ -50,7 +60,8 @@ class IsAdminOrSelfOrLibrarian(BasePermission):
         if is_token_blacklisted(request):
             raise PermissionDenied("Token is blacklisted.")
 
-        if request.user.role in ['admin', 'librarian']:
+        role = get_role_from_token(request)
+        if role in ['admin', 'librarian']:
             return True
         pk = view.kwargs.get('pk') or request.parser_context['kwargs'].get('pk')
         return request.user.is_authenticated and request.user.pk == int(pk)
@@ -64,7 +75,8 @@ class IsAdminOrSelfOrSelf(BasePermission):
             raise PermissionDenied("Token is blacklisted.")
 
         # Allow admins
-        if request.user.role == 'admin':
+        role = get_role_from_token(request)
+        if role == 'admin':
             return True
 
         # Retrieve the resource by ID from the URL kwargs
@@ -88,7 +100,8 @@ class IsAdminOrSelfComment(BasePermission):
             raise PermissionDenied("Token is blacklisted.")
 
         # Admins can access any comment
-        if request.user.role == 'admin':
+        role = get_role_from_token(request)
+        if role == 'admin':
             return True
 
         # Fetch `comment_id` from the URL parameters
@@ -108,7 +121,10 @@ class IsAdminOrSelfComment(BasePermission):
 
 class IsAdmin(BasePermission):
     def has_permission(self, request, view):
+        # if is_token_blacklisted(request):
+        #     raise PermissionDenied("Token is blacklisted.")
         role = get_role_from_token(request)
+        print(role)
         return role == 'admin'
 
 
@@ -122,7 +138,7 @@ class IsLibrarian(BasePermission):
 
 class IsAdminOrLibrarian(BasePermission):
     def has_permission(self, request, view):
-        if is_token_blacklisted(request):
-            raise PermissionDenied("Token is blacklisted.")
-
-        return request.user.role in ['admin', 'librarian']
+        # if is_token_blacklisted(request):
+        #     raise PermissionDenied("Token is blacklisted.")
+        role = get_role_from_token(request)
+        return role in ['admin', 'librarian']

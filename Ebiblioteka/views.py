@@ -28,7 +28,17 @@ from .permissions import (
     IsAdminOrSelfOrSelf,
     IsAdminOrSelfOrLibrarian
 )
+class UserDetailView(APIView):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return Response({"error": "User not authenticated"}, status=401)
 
+        return Response({
+            "id": request.user.id,
+            "username": request.user.username,
+            "email": request.user.email,
+            "role": request.user.role,
+        })
 
 # views.py
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -137,18 +147,6 @@ class smthsmth(APIView):
         user_role = 'admin' if request.user.role == 'admin' else 'librarian'
         return Response({
             "role": user_role
-        })
-
-class UserDetailView(APIView):
-    def get(self, request):
-        if not request.user.is_authenticated:
-            return Response({"error": "User not authenticated"}, status=401)
-
-        return Response({
-            "id": request.user.id,
-            "username": request.user.username,
-            "email": request.user.email,
-            "role": request.user.role,
         })
 
 class LogoutView(APIView):

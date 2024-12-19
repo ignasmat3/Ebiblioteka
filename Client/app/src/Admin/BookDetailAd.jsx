@@ -96,24 +96,34 @@ function BookDetailAd() {
     }
   };
 
-  const handleCommentEdit = async (commentId, updatedText) => {
-    const newText = prompt('Edit your comment:', updatedText);
-    if (!newText) return;
+  const handleEditBook = async () => {
+    const newTitle = prompt('Edit Book Title:', book.title);
+    const newAuthor = prompt('Edit Book Author:', book.author);
+    const newReleaseYear = prompt('Edit Release Year:', book.release_year);
+    const newDescription = prompt('Edit Description:', book.description);
+
+    if (!newTitle || !newAuthor || !newReleaseYear || !newDescription) {
+      setErrorMsg('All fields are required for editing the book.');
+      return;
+    }
 
     setIsLoading(true);
     try {
-      const response = await authFetch(
-        `http://localhost:8000/Ebiblioteka/categories/${book.category}/books/${book.id}/comments/${commentId}/edit`,
-        {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: newText }),
-        }
-      );
-      if (!response.ok) throw new Error('Failed to edit comment.');
-      fetchBookComments(book.category, book.id);
+      const response = await authFetch(`http://localhost:8000/Ebiblioteka/books/${id}/update`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: newTitle,
+          author: newAuthor,
+          release_year: newReleaseYear,
+          description: newDescription,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to edit book.');
+      fetchBookDetail(); // Refresh book details after editing
     } catch (err) {
-      setErrorMsg('Error editing comment.');
+      setErrorMsg('Error editing book details.');
     } finally {
       setIsLoading(false);
     }
@@ -130,6 +140,21 @@ function BookDetailAd() {
       <p><strong>Author:</strong> {book.author}</p>
       <p><strong>Release Year:</strong> {book.release_year}</p>
       <p><strong>Description:</strong> {book.description}</p>
+      {userRole === 'admin' && (
+        <button
+          onClick={handleEditBook}
+          style={{
+            backgroundColor: '#4CAF50',
+            color: 'white',
+            padding: '10px 15px',
+            border: 'none',
+            cursor: 'pointer',
+            marginBottom: '20px',
+          }}
+        >
+          Edit Book
+        </button>
+      )}
 
       <h3>Comments:</h3>
       {comments.length === 0 ? (

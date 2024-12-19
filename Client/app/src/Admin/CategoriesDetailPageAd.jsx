@@ -1,4 +1,3 @@
-// pages/CategoryDetailPage.jsx
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './page.css';
@@ -31,7 +30,13 @@ function CategoryDetailPage() {
     navigate(`/admin/booksad/${bookId}`);
   };
 
+  const handleEditBook = (bookId) => {
+    navigate(`/admin/booksad/${bookId}/edit`);
+  };
+
   const handleDeleteBook = async (bookId) => {
+    if (!window.confirm('Are you sure you want to delete this book?')) return;
+
     try {
       const response = await fetch(`http://localhost:8000/Ebiblioteka/books/${bookId}/delete`, {
         method: 'DELETE',
@@ -73,6 +78,17 @@ function CategoryDetailPage() {
                   style={{ marginRight: '10px', cursor: 'pointer' }}
                 >
                   View
+                </button>
+                <button
+                  onClick={() => handleEditBook(book.id)}
+                  style={{
+                    marginRight: '10px',
+                    cursor: 'pointer',
+                    backgroundColor: '#4CAF50',
+                    color: 'white',
+                  }}
+                >
+                  Edit
                 </button>
                 <button
                   onClick={() => handleDeleteBook(book.id)}
