@@ -1,0 +1,70 @@
+/* HomePage.css */
+.container {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  font-family: Arial, sans-serif;
+}
+
+/* Filters Section */
+.search-filters {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.search-filters input {
+  margin-right: 10px;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.search-filters button {
+  padding: 0.5rem 1rem;
+  background-color: #333;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.search-filters button:hover {
+  background-color: #555;
+}
+
+/* Book Grid */
+.book-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.book-card {
+  flex: 1 1 calc(100% - 20px); /* Adjust percentage to change number of cards per row */
+  border: 1px solid #ccc;
+  padding: 10px;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: transform 0.2s;
+  min-width: 200px; /* For smaller screens */
+}
+
+.book-card:hover {
+  transform: scale(1.02);
+}
+
+.book-card p {
+  margin: 0.5rem 0;
+}
+
+@media (max-width: 768px) {
+  .book-card {
+    flex: 1 1 calc(50% - 20px);
+  }
+}
+
+@media (max-width: 480px) {
+  .book-card {
+    flex: 1 1 100%;
+  }
+}

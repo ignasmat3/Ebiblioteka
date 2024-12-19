@@ -44,6 +44,7 @@ class Book(models.Model):
     title = models.CharField(max_length=255)
     author = models.CharField(max_length=255)
     description = models.TextField()
+    release_year = models.IntegerField(null=True, blank=True)  # naujas laukas
     added_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

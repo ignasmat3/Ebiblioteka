@@ -26,6 +26,10 @@ SECRET_KEY = 'django-insecure-8%sa-d+3aiwz9)hppdgkiu_!jxadl*yxrq+j8b@k3d0#=9+l7j
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = True
+
 ALLOWED_HOSTS = []
 
 AUTH_USER_MODEL = 'Ebiblioteka.User'
@@ -34,9 +38,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'Elektro',
-        'USER': 'postgres',
-        'PASSWORD': 'Hermis123@',
-        'HOST': 'localhost',
+        'USER': 'Ignas',
+        'PASSWORD': 'Hermis123',
+        'HOST': 'database-1.cx8uac2m4ss9.eu-north-1.rds.amazonaws.com',
         'PORT': '5432',
     }
 }

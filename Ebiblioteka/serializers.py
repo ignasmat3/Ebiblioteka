@@ -122,16 +122,20 @@ class UserSerializer(serializers.ModelSerializer):
         user = User(
             username=validated_data['username'],
             email=validated_data['email'],
-            role='librarian'  # Set default role
+            role='admin'  # Set default role
         )
         user.set_password(validated_data['password'])
         user.save()
         return user
 
+
 class BookSerializer(serializers.ModelSerializer):
+    category_name = serializers.CharField(source='category.name', read_only=True)
+
     class Meta:
         model = Book
-        fields = '__all__'
+        fields = ['id', 'title', 'author', 'description', 'release_year', 'added_date', 'category', 'category_name']
+
 
 class CategorySerializer(serializers.ModelSerializer):
     books = BookSerializer(many=True, read_only=True)
@@ -141,8 +145,9 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'books']
 
 class CommentSerializer(serializers.ModelSerializer):
+    user_username = serializers.CharField(source='user.username', read_only=True)
+
     class Meta:
         model = Comment
-        fields = '__all__'
-        read_only_fields = ['book', 'user', 'date']
-
+        fields = ['id', 'text', 'date', 'user_username']
+        read_only_fields = ('user',)

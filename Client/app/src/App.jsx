@@ -1,114 +1,82 @@
-import { useEffect, useState } from 'react';
-import './App.css';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
+// Components
+import Header from './components/Header';
+import HeaderUser from './components/HeaderUser';
+import HeaderAdmin from './components/HeaderAdmin'; // Correctly import HeaderAdmin
+
+// Guest Pages
+import HomePage from './pages/HomePage';
+import BookDetail from './pages/BookDetail';
+import CategoriesPage from './pages/CategoriesPage';
+import CategoryDetailPage from './pages/CategoryDetailPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import LogoutPage from './pages/LogoutPage';
+
+// User Features
+import UserEdit from './features/UserEdit';
+import BookDetailUs from './features/BookDetailUs';
+import CategoriesPageUs from './features/CatgeoryPageUs';
+import CategoryDetailPageUs from './features/CategoryDetailUs';
+import HomePageUs from './features/HomePageUs';
+
+// Admin Pages
+import BookDetailAd from './Admin/BookDetailAd.jsx';
+import CategoriesDetailPageAd from './Admin/CategoriesDetailPageAd.jsx';
+import CategoriesPageAd from './Admin/CategoriesPageAd.jsx';
+import HomePageAd from './Admin/HomePageAd.jsx';
+import UserList from './Admin/UserList.jsx';
 
 function App() {
-  const [books, setBooks] = useState([]);
-  const [title, setTitle] = useState('');
-  const [releaseYear, setReleaseYear] = useState('');
-  const [newTitle, setNewTitle] = useState('');
-
-  useEffect(() => {
-    fetchBooks();
-  }, []);
-
-  const fetchBooks = async () => {
-    try {
-      const response = await fetch('http://127.0.0.1:8000/Ebiblioteka/book/');
-      const data = await response.json();
-      setBooks(data);
-      console.log(data);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  const addBook = async () => {
-    const bookData = {
-      title,
-      release_year: releaseYear,
-    };
-    try {
-      const response = await fetch('http://127.0.0.1:8000/Ebiblioteka/create/', {
-        method: 'POST',
-        headers: {
-          'Content-type': 'application/json',
-        },
-        body: JSON.stringify(bookData),
-      });
-      const data = await response.json();
-      console.log(data);
-      fetchBooks(); // Refresh the list of books
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  const updateTitle = async (pk) => {
-    const bookToUpdate = books.find((book) => book.id === pk);
-    const bookData = {
-      title: newTitle,
-      release_year: bookToUpdate.release_year,
-    };
-    try {
-      const response = await fetch(`http://127.0.0.1:8000/Ebiblioteka/book/${pk}`, {
-        method: 'PUT',
-        headers: {
-          'Content-type': 'application/json',
-        },
-        body: JSON.stringify(bookData),
-      });
-      const data = await response.json();
-      console.log(data);
-      setBooks((prev) =>
-        prev.map((book) => (book.id === pk ? data : book))
-      );
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  const deleteBook = async (pk) => {
-    try {
-      await fetch(`http://127.0.0.1:8000/Ebiblioteka/book/${pk}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-type': 'application/json',
-        },
-      });
-      setBooks((prevBooks) => prevBooks.filter((book) => book.id !== pk));
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
+  const isAuthenticated = sessionStorage.getItem('access_token'); // Simple auth check
+  const userRole = sessionStorage.getItem('user_role');
   return (
-    <>
-      <h1>Book Site</h1>
-      <input
-        type="text"
-        placeholder="Book title..."
-        onChange={(e) => setTitle(e.target.value)}
-      />
-      <input
-        type="number"
-        placeholder="Release year..."
-        onChange={(e) => setReleaseYear(e.target.value)}
-      />
-      <button onClick={addBook}>Submit</button>
-      {books.map((book) => (
-        <div key={book.id}>
-          <p>Book name: {book.title}</p>
-          <p>Release Year: {book.release_year}</p>
-          <input
-            type="text"
-            placeholder="New title..."
-            onChange={(e) => setNewTitle(e.target.value)}
-          />
-          <button onClick={() => updateTitle(book.id)}>Change Title</button>
-          <button onClick={() => deleteBook(book.id)}>DELETE</button>
+    <Router>
+      <div className="App">
+        {/* Render different headers based on authentication status */}
+        {isAuthenticated ? (
+          userRole === 'admin' ? <HeaderAdmin /> : <HeaderUser />
+        ) : (
+          <Header />
+        )}
+
+        <div style={{ padding: '1rem' }}>
+          <Routes>
+            {/* Guest Pages */}
+            <Route path="/" element={<HomePage />} />
+            <Route path="/books/:id" element={<BookDetail />} />
+            <Route path="/categories" element={<CategoriesPage />} />
+            <Route path="/categories/:id" element={<CategoryDetailPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/logout" element={<LogoutPage />} />
+
+            {/* Protected Features for Registered Users */}
+            {isAuthenticated && userRole !== 'admin' && (
+              <>
+                <Route path="/features/useredit" element={<UserEdit />} />
+                <Route path="/features/booksus/:id" element={<BookDetailUs />} />
+                <Route path="/features/categoriesus" element={<CategoriesPageUs />} />
+                <Route path="/features/categoriesus/:id" element={<CategoryDetailPageUs />} />
+                <Route path="/features" element={<HomePageUs />} />
+              </>
+            )}
+             {/* Admin Routes */}
+            {isAuthenticated && userRole === 'admin' && (
+              <>
+                <Route path="/admin" element={<HomePageAd />} />
+                <Route path="/admin/usereditad" element={<UserList />} />
+                <Route path="/admin/booksad/:id" element={<BookDetailAd />} />
+                <Route path="/admin/categoriesad" element={<CategoriesPageAd />} />
+                <Route path="/admin/categoriesad/:id" element={<CategoriesDetailPageAd />} />
+              </>
+            )}
+          </Routes>
         </div>
-      ))}
-    </>
+      </div>
+    </Router>
   );
 }
 

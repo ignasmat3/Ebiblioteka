@@ -5,7 +5,7 @@ from .serializers import (
     CategorySerializer,
     CustomTokenObtainPairSerializer
 )
-
+from rest_framework.status import HTTP_204_NO_CONTENT
 from .models import Book, Comment, Category
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
@@ -23,11 +23,13 @@ from .models import UserSession
 from django.utils.crypto import get_random_string
 from rest_framework.response import Response
 from .permissions import (
-    IsAdminOrSelfOrLibrarian,
-    IsAdminOrSelf,
+    IsAdminOrSelfComment,
     AllowAny, IsAdmin, IsAdminOrLibrarian,
-
+    IsAdminOrSelfOrSelf,
+    IsAdminOrSelfOrLibrarian
 )
+
+
 # views.py
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
@@ -38,18 +40,25 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         data = serializer.validated_data
         user = serializer.user
 
-        # Don't delete the session here again, since it's already done in the serializer
         refresh_token = data['refresh']
+        access_token = data['access']
         session_key = data['session_key']
 
+        # Set cookies for refresh token, access token, and session key
         response = Response({
-            'access': data['access'],
-            # Only set cookies here, don’t touch sessions again
+            'access': access_token,
         }, status=status.HTTP_200_OK)
 
         response.set_cookie(
             'refresh_token',
             refresh_token,
+            httponly=True,
+            secure=True,
+            samesite='Strict',
+        )
+        response.set_cookie(
+            'access_token',
+            access_token,
             httponly=True,
             secure=True,
             samesite='Strict',
@@ -63,7 +72,6 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         )
 
         return response
-
 
 
 
@@ -107,26 +115,88 @@ class CustomTokenRefreshView(TokenRefreshView):
 import logging
 
 logger = logging.getLogger(__name__)
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.core.cache import cache  # Blacklist storage
+from rest_framework_simplejwt.tokens import RefreshToken
+import logging
+from .models import UserSession
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
+from django.core.cache import cache
+from .models import UserSession
+import logging
+
+logger = logging.getLogger(__name__)
+class smthsmth(APIView):
+    def get(self, request):
+        user_role = 'admin' if request.user.role == 'admin' else 'librarian'
+        return Response({
+            "role": user_role
+        })
+
+class UserDetailView(APIView):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return Response({"error": "User not authenticated"}, status=401)
+
+        return Response({
+            "id": request.user.id,
+            "username": request.user.username,
+            "email": request.user.email,
+            "role": request.user.role,
+        })
 
 class LogoutView(APIView):
     def post(self, request):
         logger.info(f"Cookies in request: {request.COOKIES}")
-        session_key = request.COOKIES.get('session_key')
-        if not session_key:
-            return Response({'error': 'Session key not provided in cookies.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        logger.info(f"Session key retrieved: {session_key}")
+        # Extract refresh_token, access_token, and session_key from cookies
+        refresh_token = request.COOKIES.get('refresh_token')
+        access_token_raw = request.COOKIES.get('access_token')
+        session_key = request.COOKIES.get('session_key')
+
+        if not refresh_token or not access_token_raw or not session_key:
+            return Response({'error': 'Missing tokens or session key.'}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
-            session = UserSession.objects.get(session_key=session_key)
+            # 1. Blacklist the access token
+            access_token = AccessToken(access_token_raw)
+            access_jti = access_token['jti']
+            access_exp = access_token['exp']
+            cache.set(f"blacklist_{access_jti}", "blacklisted", timeout=access_exp - int(access_token['iat']))
+
+            # 2. Blacklist the refresh token
+            refresh = RefreshToken(refresh_token)
+            refresh_jti = refresh['jti']
+            refresh_exp = refresh['exp']
+            cache.set(f"blacklist_{refresh_jti}", "blacklisted", timeout=refresh_exp - int(refresh['iat']))
+
+            # 3. Expire the session in the database
+            session = UserSession.objects.get(session_key=session_key, expired=False)
             session.expired = True
             session.save()
+
+            # 4. Prepare response: delete cookies
             response = Response({'success': 'Logged out successfully.'}, status=status.HTTP_200_OK)
             response.delete_cookie('session_key')
             response.delete_cookie('refresh_token')
+            response.delete_cookie('access_token')
+
+            logger.info(f"Access and refresh tokens blacklisted. Session expired.")
             return response
+
         except UserSession.DoesNotExist:
-            logger.error(f"Session with key {session_key} does not exist.")
-            return Response({'error': 'Invalid session key.'}, status=status.HTTP_400_BAD_REQUEST)
+            logger.error("Session does not exist or already expired.")
+            return Response({'error': 'Invalid or expired session key.'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error(f"Error during logout: {str(e)}")
+            return Response({'error': 'An error occurred during logout.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 # ----------------- Book Views -----------------
 @api_view(['GET'])
 @permission_classes([AllowAny])  # Allow any for GET, check manually for POST
@@ -181,51 +251,74 @@ def book_detail_delete(request, pk):
 
 # ----------------- Comment Views -----------------
 
+# ----------------- Comment Views -----------------
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def comment_list_get(request):
-    comments = Comment.objects.all()
+def comment_list_get(request, cat_id, book_id):
+    # First, ensure the book exists under the given category
+    book = get_object_or_404(Book, pk=book_id, category_id=cat_id)
+
+    # Now filter comments by this specific book
+    comments = Comment.objects.filter(book=book)
     serializer = CommentSerializer(comments, many=True)
     return Response(serializer.data)
 
+
 @api_view(['POST'])
 @permission_classes([IsAdminOrSelfOrLibrarian])
-def comment_list_create(request):
-        serializer = CommentSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(user=request.user)  # Assign the authenticated user
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+def comment_list_create(request, cat_id, book_id):
+    # Ensure the book exists under the given category
+    book = get_object_or_404(Book, pk=book_id, category_id=cat_id)
+
+    # When creating a new comment, we must associate it with the correct book.
+    # Include the `book` in the serializer's save method.
+    serializer = CommentSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save(user=request.user, book=book)  # Assign the user and the book
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 @api_view(['GET'])
 @permission_classes([IsAdminOrSelfOrLibrarian])
-def comment_detail_get(request, pk):
-    comment = get_object_or_404(Comment, pk=pk)  # Query the Comment model
-    serializer = CommentSerializer(comment)  # Serialize the Comment object
+def comment_detail_get(request, cat_id, book_id, pk):
+    # Ensure the book exists under the given category
+    book = get_object_or_404(Book, pk=book_id, category_id=cat_id)
+
+    # Ensure the comment belongs to this book
+    comment = get_object_or_404(Comment, pk=pk, book=book)
+    serializer = CommentSerializer(comment)
     return Response(serializer.data)
 
 
 @api_view(['PUT'])
-@permission_classes([IsAdminOrSelf])
-def comment_detail_put(request, pk):
-    comment = get_object_or_404(Comment, pk=pk)  # Query the Comment model
-    serializer = CommentSerializer(comment, data=request.data, partial=True)  # Partial update
+@permission_classes([IsAdminOrSelfComment])
+def comment_detail_put(request, cat_id, book_id, pk):
+    # Ensure the book exists under the given category
+    book = get_object_or_404(Book, pk=book_id, category_id=cat_id)
+
+    # Ensure the comment belongs to this book
+    comment = get_object_or_404(Comment, pk=pk, book=book)
+    serializer = CommentSerializer(comment, data=request.data, partial=True)
     if serializer.is_valid():
         serializer.save()
         return Response({'detail': 'Comment updated successfully.', 'data': serializer.data})
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 @api_view(['DELETE'])
-@permission_classes([IsAdminOrSelf])
-def comment_detail_delete(request, pk):
-    comment = get_object_or_404(Comment, pk=pk)  # Query the Comment model
-    comment.delete()  # Delete the comment
-    return Response({'detail': 'Comment deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
+@permission_classes([IsAdminOrSelfComment])
+def comment_detail_delete(request, cat_id, book_id, pk):
+    # Ensure the book exists under the given category
+    book = get_object_or_404(Book, pk=book_id, category_id=cat_id)
 
+    # Ensure the comment belongs to this book
+    comment = get_object_or_404(Comment, pk=pk, book=book)
 
+    # Perform deletion
+    comment.delete()
+    return Response({'detail': 'Comment deleted successfully.'}, status=HTTP_204_NO_CONTENT)
 # ----------------- User Views -----------------
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -243,7 +336,7 @@ def user_create(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
-@permission_classes([IsAdminOrSelfOrLibrarian])
+@permission_classes([IsAdminOrSelfOrSelf])
 def user_detail_get(request, pk):
     user = get_object_or_404(User, pk=pk)
     serializer = UserSerializer(user)
@@ -251,7 +344,7 @@ def user_detail_get(request, pk):
 
 
 @api_view(['PUT'])
-@permission_classes([IsAdminOrSelf])
+@permission_classes([IsAdminOrSelfOrSelf])
 def user_update_put(request, pk):
     user = get_object_or_404(User, pk=pk)
     serializer = UserSerializer(user, data=request.data, partial=True)
@@ -262,7 +355,7 @@ def user_update_put(request, pk):
 
 
 @api_view(['DELETE'])
-@permission_classes([IsAdminOrSelf])
+@permission_classes([IsAdminOrSelfOrSelf])
 def user_delete(request, pk):
     user = get_object_or_404(User, pk=pk)
     user.delete()
@@ -288,7 +381,7 @@ def category_list_create(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
-@permission_classes([IsAdminOrLibrarian])
+@permission_classes([AllowAny])
 def category_detail_get(request, pk):
     category = get_object_or_404(Category, pk=pk)
     if request.method == 'GET':
