@@ -8,5 +8,12 @@
       <jdbc-url>jdbc:sqlite:C:\Users\Nitro\Desktop\again\djangoProject2\db.sqlite3</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="Elektro@localhost" uuid="cc1280e9-798f-4a41-a2af-5f20c46791b5">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://localhost:5432/Elektro</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>
