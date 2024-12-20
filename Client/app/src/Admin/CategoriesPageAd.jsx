@@ -1,7 +1,7 @@
-// pages/CategoriesPage.jsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './page.css';
+import { authFetch } from '../authFetch';
 
 function CategoriesPage() {
   const [categories, setCategories] = useState([]);
@@ -14,10 +14,8 @@ function CategoriesPage() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('http://localhost:8000/Ebiblioteka/categories/list');
-      if (!response.ok) {
-        throw new Error('Failed to fetch categories');
-      }
+      const response = await authFetch('http://localhost:8000/Ebiblioteka/categories/list');
+      if (!response.ok) throw new Error('Failed to fetch categories');
       const data = await response.json();
       setCategories(data);
     } catch (err) {
@@ -32,22 +30,12 @@ function CategoriesPage() {
 
   const handleDeleteCategory = async (categoryId) => {
     if (!window.confirm('Are you sure you want to delete this category?')) return;
-
     try {
-      const token = sessionStorage.getItem('access_token'); // Retrieve the token from storage
-      const response = await fetch(`http://localhost:8000/Ebiblioteka/categories/${categoryId}/delete`, {
+      const response = await authFetch(`http://localhost:8000/Ebiblioteka/categories/${categoryId}/delete`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`, // Add the Authorization header
-          'Content-Type': 'application/json',
-        },
       });
-
-      if (response.ok) {
-        setCategories(categories.filter((category) => category.id !== categoryId));
-      } else {
-        throw new Error('Failed to delete category');
-      }
+      if (!response.ok) throw new Error('Failed to delete category');
+      setCategories(categories.filter((category) => category.id !== categoryId));
     } catch (err) {
       console.error('Error deleting category:', err);
       setErrorMsg('Failed to delete category. Please try again later.');
@@ -59,36 +47,21 @@ function CategoriesPage() {
   };
 
   return (
-    <div className="categories-container">
-      <h2>Categories</h2>
-      {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
+    <div className="page-container">
+      <h2 className="section-title">Categories</h2>
+      {errorMsg && <p className="error-message">{errorMsg}</p>}
       {categories.length === 0 ? (
-        <p>No categories available.</p>
+        <p className="no-data-message">No categories available.</p>
       ) : (
-        <div className="category-list">
+        <div className="category-grid">
           {categories.map((category) => (
-            <div
-              key={category.id}
-              className="category-card"
-            >
-              <h3>{category.name}</h3>
+            <div key={category.id} className="category-card">
+              <h3 className="category-name">{category.name}</h3>
               <div className="category-actions">
-                <button
-                  onClick={() => handleCategoryClick(category.id)}
-                  style={{ marginRight: '10px', cursor: 'pointer' }}
-                >
+                <button onClick={() => handleCategoryClick(category.id)} className="submit-button view-button">
                   View
                 </button>
-                <button
-                  onClick={() => handleEditCategory(category.id)}
-                  style={{ marginRight: '10px', cursor: 'pointer', backgroundColor: '#008CBA', color: 'white' }}
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDeleteCategory(category.id)}
-                  style={{ cursor: 'pointer', backgroundColor: '#f44336', color: 'white' }}
-                >
+                <button onClick={() => handleDeleteCategory(category.id)} className="submit-button delete-button">
                   Delete
                 </button>
               </div>

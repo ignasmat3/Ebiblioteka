@@ -104,29 +104,55 @@ class CustomTokenRefreshSerializer(TokenRefreshSerializer):
         return data
 
 class UserSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-    password2 = serializers.CharField(write_only=True, required=True)
+    password = serializers.CharField(write_only=True, required=False, validators=[validate_password])
+    password2 = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'password', 'password2']
-        extra_kwargs = {'password': {'write_only': True}}
+        fields = ['id', 'username', 'email', 'password', 'password2', 'role']
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'role': {'read_only': True},  # If you don't want user to change their role
+        }
 
     def validate(self, attrs):
-        if attrs['password'] != attrs['password2']:
-            raise serializers.ValidationError({'password': "Password fields didn't match."})
+        # If password is present, ensure password2 matches
+        if 'password' in attrs or 'password2' in attrs:
+            password = attrs.get('password')
+            password2 = attrs.get('password2')
+            if password and password2 and password != password2:
+                raise serializers.ValidationError({'password': "Password fields didn't match."})
         return attrs
 
     def create(self, validated_data):
-        validated_data.pop('password2')
+        # For creation
+        password = validated_data.pop('password', None)
+        validated_data.pop('password2', None)
         user = User(
             username=validated_data['username'],
             email=validated_data['email'],
-            role='admin'  # Set default role
+            role='librarian'  # or 'reader' if you'd prefer
         )
-        user.set_password(validated_data['password'])
+        if password:
+            user.set_password(password)
         user.save()
         return user
+
+    def update(self, instance, validated_data):
+        # For updates
+        password = validated_data.pop('password', None)
+        validated_data.pop('password2', None)
+
+        # Update username and email if provided
+        instance.username = validated_data.get('username', instance.username)
+        instance.email = validated_data.get('email', instance.email)
+
+        # If password provided, update it
+        if password:
+            instance.set_password(password)
+
+        instance.save()
+        return instance
 
 
 class BookSerializer(serializers.ModelSerializer):

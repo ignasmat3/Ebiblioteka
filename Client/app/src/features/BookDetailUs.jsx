@@ -10,11 +10,6 @@ function BookDetail() {
   const [newCommentText, setNewCommentText] = useState('');
   const [errorMsg, setErrorMsg] = useState(null);
 
-  // User credentials
-  const access = sessionStorage.getItem('access_token');
-  const currentUsername = sessionStorage.getItem('username');
-  const userRole = sessionStorage.getItem('user_role'); // "admin" or "librarian"
-
   useEffect(() => {
     fetchBookDetail();
   }, [id]);
@@ -27,7 +22,7 @@ function BookDetail() {
 
   const fetchBookDetail = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/Ebiblioteka/books/${id}/detail`);
+      const response = await authFetch(`http://localhost:8000/Ebiblioteka/books/${id}/detail`);
       if (!response.ok) throw new Error('Failed to fetch book detail');
       const data = await response.json();
       setBook(data);
@@ -38,7 +33,7 @@ function BookDetail() {
 
   const fetchBookComments = async (categoryId, bookId) => {
     try {
-      const response = await fetch(
+      const response = await authFetch(
         `http://localhost:8000/Ebiblioteka/categories/${categoryId}/books/${bookId}/comments/list`
       );
       if (!response.ok) throw new Error('Failed to fetch comments');
@@ -51,11 +46,8 @@ function BookDetail() {
 
   const handleCommentSubmit = async (event) => {
     event.preventDefault();
-    if (!access) {
-      setErrorMsg('You must be logged in to post a comment.');
-      return;
-    }
-
+    // Now we allow commenting without checking if the user is logged in on the client side
+    // The backend will handle auth, so we just attempt the request.
     try {
       const response = await authFetch(
         `http://localhost:8000/Ebiblioteka/categories/${book.category}/books/${book.id}/comments/create`,
@@ -109,87 +101,71 @@ function BookDetail() {
     }
   };
 
-  if (!book) return <p>Loading book details...</p>;
+  if (!book) return <p className="loading-message">Loading book details...</p>;
 
   return (
-    <div>
-      {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
+    <div className="book-detail-container">
+      {errorMsg && <p className="error-message">{errorMsg}</p>}
 
-      <h2>{book.title}</h2>
-      <p><strong>Category:</strong> {book.category_name}</p>
-      <p><strong>Author:</strong> {book.author}</p>
-      <p><strong>Release Year:</strong> {book.release_year}</p>
-      <p><strong>Description:</strong> {book.description}</p>
+      <div className="book-info">
+        <h2 className="book-title">{book.title}</h2>
+        <p className="book-meta"><strong>Category:</strong> {book.category_name}</p>
+        <p className="book-meta"><strong>Author:</strong> {book.author}</p>
+        <p className="book-meta"><strong>Release Year:</strong> {book.release_year}</p>
+        <p className="book-description"><strong>Description:</strong> {book.description}</p>
+      </div>
 
-      <h3>Comments:</h3>
-      {comments.length === 0 ? (
-        <p>No comments for this book.</p>
-      ) : (
-        comments.map((comment) => (
-          <div key={comment.id} style={{ border: '1px solid #ccc', margin: '10px', padding: '10px' }}>
-            <p><strong>User:</strong> {comment.user_username}</p>
-            <p>{comment.text}</p>
-            <p><small>{new Date(comment.date).toLocaleString()}</small></p>
+      <div className="comments-section">
+        <h3 className="comments-title">Comments:</h3>
+        {comments.length === 0 ? (
+          <p className="no-comments">No comments for this book.</p>
+        ) : (
+          <div className="comments-list">
+            {comments.map((comment) => (
+              <div key={comment.id} className="comment-card">
+                <p className="comment-user"><strong>User:</strong> {comment.user_username}</p>
+                <p className="comment-text">{comment.text}</p>
+                <p className="comment-date"><small>{new Date(comment.date).toLocaleString()}</small></p>
 
-            {/* Render Edit and Delete buttons */}
-            {
-              <div style={{ marginTop: '10px' }}>
-                <button
-                  onClick={() => handleCommentEdit(comment.id, comment.text)}
-                  style={{
-                    backgroundColor: '#4CAF50',
-                    color: 'white',
-                    padding: '5px 10px',
-                    border: 'none',
-                    marginRight: '5px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleCommentDelete(comment.id)}
-                  style={{
-                    backgroundColor: '#f44336',
-                    color: 'white',
-                    padding: '5px 10px',
-                    border: 'none',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Delete
-                </button>
+                {/* All users can see edit/delete now, no conditions */}
+                <div style={{ marginTop: '10px', display: 'flex', gap: '10px' }}>
+                  <button
+                    onClick={() => handleCommentEdit(comment.id, comment.text)}
+                    className="submit-button"
+                    style={{ backgroundColor: '#4CAF50' }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleCommentDelete(comment.id)}
+                    className="submit-button"
+                    style={{ backgroundColor: '#f44336' }}
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
-            }
+            ))}
           </div>
-        ))
-      )}
+        )}
 
-      {access ? (
-        <form onSubmit={handleCommentSubmit} style={{ marginTop: '20px' }}>
-          <h4>Add a Comment:</h4>
+        {/* Comment form always visible now */}
+        <form onSubmit={handleCommentSubmit} className="comment-form">
+          <h4 className="form-title">Add a Comment:</h4>
           <textarea
+            className="comment-textarea"
             value={newCommentText}
             onChange={(e) => setNewCommentText(e.target.value)}
             placeholder="Write your comment here..."
-            style={{ width: '100%', height: '80px', marginBottom: '10px' }}
           />
           <button
             type="submit"
-            style={{
-              backgroundColor: '#008CBA',
-              color: 'white',
-              padding: '10px',
-              border: 'none',
-              cursor: 'pointer',
-            }}
+            className="submit-button"
           >
             Submit Comment
           </button>
         </form>
-      ) : (
-        <p>You must be logged in to post a comment.</p>
-      )}
+      </div>
     </div>
   );
 }

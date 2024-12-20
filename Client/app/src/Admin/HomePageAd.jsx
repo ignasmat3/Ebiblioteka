@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './page.css';
+import { authFetch } from '../authFetch';
 
 function HomePage() {
   const [allBooks, setAllBooks] = useState([]);
@@ -16,10 +17,8 @@ function HomePage() {
 
   const fetchBooks = async () => {
     try {
-      const response = await fetch('http://localhost:8000/Ebiblioteka/books/list');
-      if (!response.ok) {
-        throw new Error('Failed to fetch books');
-      }
+      const response = await authFetch('http://localhost:8000/Ebiblioteka/books/list');
+      if (!response.ok) throw new Error('Failed to fetch books');
       const data = await response.json();
       setAllBooks(data);
       setDisplayedBooks(getRandomBooks(data, 5));
@@ -37,43 +36,30 @@ function HomePage() {
 
   const handleSearch = () => {
     let filtered = [...allBooks];
-
     if (categoryFilter.trim() !== '') {
       filtered = filtered.filter(book =>
         book.category_name && book.category_name.toLowerCase().includes(categoryFilter.toLowerCase())
       );
     }
-
     if (titleFilter.trim() !== '') {
       filtered = filtered.filter(book =>
         book.title && book.title.toLowerCase().includes(titleFilter.toLowerCase())
       );
     }
-
     setDisplayedBooks(filtered);
   };
 
   const handleBookClick = (bookId) => {
-    navigate(`/books/${bookId}`); // Navigate to the book detail page
+    navigate(`/books/${bookId}`);
   };
 
   const handleDeleteBook = async (bookId) => {
     if (!window.confirm('Are you sure you want to delete this book?')) return;
-
     try {
-      const accessToken = sessionStorage.getItem('access_token');
-      const response = await fetch(`http://localhost:8000/Ebiblioteka/books/${bookId}/delete`, {
+      const response = await authFetch(`http://localhost:8000/Ebiblioteka/books/${bookId}/delete`, {
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete book');
-      }
-
-      // Refresh the book list after deletion
+      if (!response.ok) throw new Error('Failed to delete book');
       fetchBooks();
     } catch (err) {
       console.error('Error deleting book:', err);
@@ -82,63 +68,49 @@ function HomePage() {
   };
 
   return (
-    <div>
-      <h2>Search Filters</h2>
-      {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
-      <input
-        type="text"
-        placeholder="Filter by category..."
-        value={categoryFilter}
-        onChange={(e) => setCategoryFilter(e.target.value)}
-        style={{ marginRight: '10px' }}
-      />
-      <input
-        type="text"
-        placeholder="Filter by title..."
-        value={titleFilter}
-        onChange={(e) => setTitleFilter(e.target.value)}
-        style={{ marginRight: '10px' }}
-      />
-      <button onClick={handleSearch}>Search</button>
+    <div className="page-container">
+      <h2 className="section-title">Search Filters</h2>
+      {errorMsg && <p className="error-message">{errorMsg}</p>}
+      <div className="search-filters">
+        <input
+          type="text"
+          placeholder="Filter by category..."
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          className="form-input"
+        />
+        <input
+          type="text"
+          placeholder="Filter by title..."
+          value={titleFilter}
+          onChange={(e) => setTitleFilter(e.target.value)}
+          className="form-input"
+        />
+        <button onClick={handleSearch} className="submit-button search-button">
+          Search
+        </button>
+      </div>
 
-      <h2>Books</h2>
+      <h2 className="section-title">Books</h2>
       {displayedBooks.length === 0 ? (
-        <p>No books found.</p>
+        <p className="no-data-message">No books found.</p>
       ) : (
-        displayedBooks.map((book) => (
-          <div
-            key={book.id}
-            style={{ border: '1px solid #ccc', margin: '10px', padding: '10px' }}
-          >
-            <p><strong>Title:</strong> {book.title}</p>
-            <p><strong>Release Year:</strong> {book.release_year}</p>
-            <button
-              onClick={() => handleBookClick(book.id)}
-              style={{
-                backgroundColor: '#008CBA',
-                color: 'white',
-                padding: '5px 10px',
-                border: 'none',
-                marginRight: '5px',
-                cursor: 'pointer',
-              }}
-            >
-              View Details
-            </button>
-            <button
-              onClick={() => handleDeleteBook(book.id)}
-              style={{
-                backgroundColor: '#f44336',
-                color: 'white',
-                padding: '5px 10px',
-                border: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              Delete
-            </button>
-          </div>
-        ))
+        <div className="book-grid">
+          {displayedBooks.map((book) => (
+            <div key={book.id} className="book-card">
+              <p><strong>Title:</strong> {book.title}</p>
+              <p><strong>Release Year:</strong> {book.release_year}</p>
+              <div className="book-actions">
+                <button onClick={() => handleBookClick(book.id)} className="submit-button view-button">
+                  View Details
+                </button>
+                <button onClick={() => handleDeleteBook(book.id)} className="submit-button delete-button">
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

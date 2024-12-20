@@ -1,6 +1,7 @@
 // pages/CategoriesPage.jsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { authFetch } from '../authFetch';
 import './page.css';
 
 function CategoriesPage() {
@@ -13,7 +14,7 @@ function CategoriesPage() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('http://localhost:8000/Ebiblioteka/categories/list');
+      const response = await authFetch('http://localhost:8000/Ebiblioteka/categories/list');
       if (!response.ok) {
         throw new Error('Failed to fetch categories');
       }
@@ -29,19 +30,19 @@ function CategoriesPage() {
   };
 
   return (
-    <div className="categories-container">
-      <h2>Categories</h2>
+    <div className="page-container">
+      <h2 className="section-title">Categories</h2>
       {categories.length === 0 ? (
-        <p>No categories available.</p>
+        <p className="no-data-message">No categories available.</p>
       ) : (
-        <div className="category-list">
+        <div className="category-grid">
           {categories.map((category) => (
             <div
               key={category.id}
               className="category-card"
               onClick={() => handleCategoryClick(category.id)}
             >
-              <h3>{category.name}</h3>
+              <h3 className="category-name">{category.name}</h3>
             </div>
           ))}
         </div>

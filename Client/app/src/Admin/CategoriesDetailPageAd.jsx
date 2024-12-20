@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './page.css';
+import { authFetch } from '../authFetch';
 
 function CategoryDetailPage() {
   const { id } = useParams();
@@ -14,10 +15,8 @@ function CategoryDetailPage() {
 
   const fetchCategoryDetail = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/Ebiblioteka/categories/${id}/detail`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch category detail');
-      }
+      const response = await authFetch(`http://localhost:8000/Ebiblioteka/categories/${id}/detail`);
+      if (!response.ok) throw new Error('Failed to fetch category detail');
       const data = await response.json();
       setCategory(data);
     } catch (err) {
@@ -36,17 +35,11 @@ function CategoryDetailPage() {
 
   const handleDeleteBook = async (bookId) => {
     if (!window.confirm('Are you sure you want to delete this book?')) return;
-
     try {
-      const response = await fetch(`http://localhost:8000/Ebiblioteka/books/${bookId}/delete`, {
+      const response = await authFetch(`http://localhost:8000/Ebiblioteka/books/${bookId}/delete`, {
         method: 'DELETE',
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete book');
-      }
-
-      // Refresh the category details after successful deletion
+      if (!response.ok) throw new Error('Failed to delete book');
       fetchCategoryDetail();
     } catch (err) {
       console.error('Error deleting book:', err);
@@ -54,18 +47,16 @@ function CategoryDetailPage() {
     }
   };
 
-  if (!category) {
-    return <p>Loading category details...</p>;
-  }
+  if (!category) return <p className="loading-message">Loading category details...</p>;
 
   return (
     <div className="category-detail-container">
-      <h2>Category: {category.name}</h2>
-      {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
+      {errorMsg && <p className="error-message">{errorMsg}</p>}
+      <h2 className="section-title">Category: {category.name}</h2>
+      <h3 className="section-subtitle">Books in {category.name}</h3>
 
-      <h3>Books in {category.name}</h3>
       {(!category.books || category.books.length === 0) ? (
-        <p>No books found in this category.</p>
+        <p className="no-data-message">No books found in this category.</p>
       ) : (
         <div className="book-grid">
           {category.books.map((book) => (
@@ -73,27 +64,10 @@ function CategoryDetailPage() {
               <p><strong>Title:</strong> {book.title}</p>
               <p><strong>Release Year:</strong> {book.release_year}</p>
               <div className="book-actions">
-                <button
-                  onClick={() => handleBookClick(book.id)}
-                  style={{ marginRight: '10px', cursor: 'pointer' }}
-                >
+                <button onClick={() => handleBookClick(book.id)} className="submit-button view-button">
                   View
                 </button>
-                <button
-                  onClick={() => handleEditBook(book.id)}
-                  style={{
-                    marginRight: '10px',
-                    cursor: 'pointer',
-                    backgroundColor: '#4CAF50',
-                    color: 'white',
-                  }}
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDeleteBook(book.id)}
-                  style={{ cursor: 'pointer', backgroundColor: '#f44336', color: 'white' }}
-                >
+                <button onClick={() => handleDeleteBook(book.id)} className="submit-button delete-button">
                   Delete
                 </button>
               </div>

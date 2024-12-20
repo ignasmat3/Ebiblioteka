@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 // Components
 import Header from './components/Header';
 import HeaderUser from './components/HeaderUser';
-import HeaderAdmin from './components/HeaderAdmin'; // Correctly import HeaderAdmin
+import HeaderAdmin from './components/HeaderAdmin';
 
 // Guest Pages
 import HomePage from './pages/HomePage';
@@ -18,7 +18,7 @@ import LogoutPage from './pages/LogoutPage';
 // User Features
 import UserEdit from './features/UserEdit';
 import BookDetailUs from './features/BookDetailUs';
-import CategoriesPageUs from './features/CatgeoryPageUs';
+import CategoriesPageUs from './features/CategoryPageUs';
 import CategoryDetailPageUs from './features/CategoryDetailUs';
 import HomePageUs from './features/HomePageUs';
 
@@ -30,8 +30,11 @@ import HomePageAd from './Admin/HomePageAd.jsx';
 import UserList from './Admin/UserList.jsx';
 
 function App() {
-  const isAuthenticated = sessionStorage.getItem('access_token'); // Simple auth check
-  const userRole = sessionStorage.getItem('user_role');
+  // Retrieve tokens and user role from local storage
+  const accessToken = localStorage.getItem('access_token'); // Check if access token exists
+  const userRole = localStorage.getItem('user_role'); // Retrieve user role from local storage
+  const isAuthenticated = !!accessToken;
+
   return (
     <Router>
       <div className="App">
@@ -63,7 +66,8 @@ function App() {
                 <Route path="/features" element={<HomePageUs />} />
               </>
             )}
-             {/* Admin Routes */}
+
+            {/* Admin Routes */}
             {isAuthenticated && userRole === 'admin' && (
               <>
                 <Route path="/admin" element={<HomePageAd />} />

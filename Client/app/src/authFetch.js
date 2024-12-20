@@ -1,49 +1,64 @@
 // authFetch.js
-export async function authFetch(url, options = {}) {
-  let access = sessionStorage.getItem('access_token');
 
-  // Add Authorization header if access token is available
-  if (access) {
+const REFRESH_ENDPOINT = 'http://localhost:8000/Ebiblioteka/api/token/refresh/';
+
+export async function authFetch(url, options = {}) {
+  // Retrieve the current access token from localStorage
+  let accessToken = localStorage.getItem('access_token');
+
+  if (accessToken) {
     options.headers = {
       ...(options.headers || {}),
-      'Authorization': `Bearer ${access}`
+      'Authorization': `Bearer ${accessToken}`,
     };
   }
 
-  // Always include credentials if needed
-  options.credentials = 'include';
-
+  // Make the initial request
   let response = await fetch(url, options);
 
   if (response.status === 401) {
-    // Try refreshing the token
-    const refreshResponse = await fetch('http://localhost:8000/api/token/refresh/', {
+    // Access token might have expired, attempt to refresh
+    const refreshResponse = await fetch(REFRESH_ENDPOINT, {
       method: 'POST',
-      credentials: 'include'
+      credentials: 'include', // Ensure refresh token cookie is sent
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}) // If refresh endpoint requires data, include it here
     });
 
     if (refreshResponse.ok) {
-      const refreshData = await refreshResponse.json();
-      // Update the access token in sessionStorage
-      sessionStorage.setItem('access_token', refreshData.access);
+      const data = await refreshResponse.json();
+      const newAccessToken = data.access;
 
-      // Retry the original request with the new token
-      options.headers = {
-        ...(options.headers || {}),
-        'Authorization': `Bearer ${refreshData.access}`
-      };
+      if (newAccessToken) {
+        // Store the new access token
+        localStorage.setItem('access_token', newAccessToken);
 
-      response = await fetch(url, options);
+        // Retry the original request with the new token
+        options.headers = {
+          ...(options.headers || {}),
+          'Authorization': `Bearer ${newAccessToken}`,
+        };
+        response = await fetch(url, options);
+      } else {
+        // No new token returned, session expired
+        handleLogout();
+        throw new Error('Session expired. Please log in again.');
+      }
     } else {
-      console.error('Token refresh failed. Please log in again.');
-      sessionStorage.removeItem('access_token');
+      // Refresh failed, logout
+      handleLogout();
+      throw new Error('Session expired. Please log in again.');
     }
   }
 
   return response;
 }
 
-// New utility function to fetch access token
-export function getAccessToken() {
-  return sessionStorage.getItem('access_token');
+function handleLogout() {
+  // Clear stored tokens
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('user_role');
+  localStorage.removeItem('username');
+  // Redirect to login
+  window.location.href = '/login';
 }

@@ -1,6 +1,7 @@
 // pages/HomePage.jsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { authFetch } from '../authFetch';
 import './page.css';
 
 function HomePage() {
@@ -16,7 +17,7 @@ function HomePage() {
 
   const fetchBooks = async () => {
     try {
-      const response = await fetch('http://localhost:8000/Ebiblioteka/books/list');
+      const response = await authFetch('http://localhost:8000/Ebiblioteka/books/list');
       if (!response.ok) {
         throw new Error('Failed to fetch books');
       }
@@ -57,38 +58,47 @@ function HomePage() {
   };
 
   return (
-    <div>
-      <h2>Search Filters</h2>
-      <input
-        type="text"
-        placeholder="Filter by category..."
-        value={categoryFilter}
-        onChange={(e) => setCategoryFilter(e.target.value)}
-        style={{ marginRight: '10px' }}
-      />
-      <input
-        type="text"
-        placeholder="Filter by title..."
-        value={titleFilter}
-        onChange={(e) => setTitleFilter(e.target.value)}
-        style={{ marginRight: '10px' }}
-      />
-      <button onClick={handleSearch}>Search</button>
+    <div className="home-page-container">
+      <div className="search-section">
+        <h2 className="section-title">Search Filters</h2>
+        <div className="search-filters">
+          <input
+            type="text"
+            placeholder="Filter by category..."
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="form-input"
+          />
+          <input
+            type="text"
+            placeholder="Filter by title..."
+            value={titleFilter}
+            onChange={(e) => setTitleFilter(e.target.value)}
+            className="form-input"
+          />
+          <button onClick={handleSearch} className="submit-button">Search</button>
+        </div>
+      </div>
 
-      <h2>Books</h2>
+      <h2 className="section-title">Books</h2>
       {displayedBooks.length === 0 ? (
-        <p>No books found.</p>
+        <p className="no-data-message">No books found.</p>
       ) : (
-        displayedBooks.map((book) => (
-          <div
-            key={book.id}
-            style={{ border: '1px solid #ccc', margin: '10px', padding: '10px', cursor: 'pointer' }}
-            onClick={() => handleBookClick(book.id)}
-          >
-            <p><strong>Title:</strong> {book.title}</p>
-            <p><strong>Release Year:</strong> {book.release_year}</p>
-          </div>
-        ))
+        <div className="book-grid">
+          {displayedBooks.map((book) => (
+            <div
+              key={book.id}
+              className="book-card home-book-card"
+              onClick={() => handleBookClick(book.id)}
+            >
+              <p className="book-card-title"><strong>Title:</strong> {book.title}</p>
+              <p className="book-card-meta"><strong>Release Year:</strong> {book.release_year}</p>
+              {book.category_name && (
+                <p className="book-card-meta"><strong>Category:</strong> {book.category_name}</p>
+              )}
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

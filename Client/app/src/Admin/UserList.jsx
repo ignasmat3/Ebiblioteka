@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './page.css';
+import { authFetch } from '../authFetch';
 
 function UserListPage() {
   const [users, setUsers] = useState([]);
@@ -13,10 +14,8 @@ function UserListPage() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('http://localhost:8000/Ebiblioteka/users/list');
-      if (!response.ok) {
-        throw new Error('Failed to fetch users');
-      }
+      const response = await authFetch('http://localhost:8000/Ebiblioteka/users/list');
+      if (!response.ok) throw new Error('Failed to fetch users');
       const data = await response.json();
       setUsers(data);
     } catch (err) {
@@ -27,17 +26,12 @@ function UserListPage() {
 
   const handleDeleteUser = async (userId) => {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
-
     try {
-      const response = await fetch(`http://localhost:8000/Ebiblioteka/users/${userId}/delete`, {
+      const response = await authFetch(`http://localhost:8000/Ebiblioteka/users/${userId}/delete`, {
         method: 'DELETE',
       });
-
-      if (response.ok) {
-        setUsers(users.filter((user) => user.id !== userId));
-      } else {
-        throw new Error('Failed to delete user');
-      }
+      if (!response.ok) throw new Error('Failed to delete user');
+      setUsers(users.filter((user) => user.id !== userId));
     } catch (err) {
       console.error('Error deleting user:', err);
       setErrorMsg('Failed to delete user. Please try again later.');
@@ -45,61 +39,54 @@ function UserListPage() {
   };
 
   const handleEditUser = (userId) => {
-    navigate(`/admin/useredit/${userId}`); // Navigate to the user edit page
+    navigate(`/admin/useredit/${userId}`);
   };
 
   return (
-    <div className="user-list-container">
-      <h2>All Users</h2>
-      {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
+    <div className="page-container">
+      <h2 className="section-title">All Users</h2>
+      {errorMsg && <p className="error-message">{errorMsg}</p>}
 
       {users.length === 0 ? (
-        <p>No users found.</p>
+        <p className="no-data-message">No users found.</p>
       ) : (
-        <table className="user-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Username</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr key={user.id}>
-                <td>{user.id}</td>
-                <td>{user.username}</td>
-                <td>{user.email}</td>
-                <td>{user.role}</td>
-                <td>
-                  <button
-                    onClick={() => handleEditUser(user.id)}
-                    style={{
-                      backgroundColor: '#4CAF50',
-                      color: 'white',
-                      marginRight: '10px',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDeleteUser(user.id)}
-                    style={{
-                      backgroundColor: '#f44336',
-                      color: 'white',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Delete
-                  </button>
-                </td>
+        <div className="table-container">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user.id}>
+                  <td>{user.id}</td>
+                  <td>{user.username}</td>
+                  <td>{user.email}</td>
+                  <td>{user.role}</td>
+                  <td>
+                    <button
+                      onClick={() => handleEditUser(user.id)}
+                      className="submit-button edit-button"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteUser(user.id)}
+                      className="submit-button delete-button"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

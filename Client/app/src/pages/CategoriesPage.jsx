@@ -1,7 +1,6 @@
-// pages/CategoriesPage.jsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './page.css';
+import './page.css'; // Same CSS as BookDetail
 
 function CategoriesPage() {
   const [categories, setCategories] = useState([]);
@@ -29,19 +28,19 @@ function CategoriesPage() {
   };
 
   return (
-    <div className="categories-container">
-      <h2>Categories</h2>
+    <div className="page-container">
+      <h2 className="section-title">Categories</h2>
       {categories.length === 0 ? (
-        <p>No categories available.</p>
+        <p className="no-data-message">No categories available.</p>
       ) : (
-        <div className="category-list">
+        <div className="category-grid">
           {categories.map((category) => (
             <div
               key={category.id}
               className="category-card"
               onClick={() => handleCategoryClick(category.id)}
             >
-              <h3>{category.name}</h3>
+              <h3 className="category-name">{category.name}</h3>
             </div>
           ))}
         </div>

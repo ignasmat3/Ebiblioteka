@@ -1,73 +1,61 @@
-import React from 'react';
+import React, { useState } from 'react';
+import './Header.css';
 
-function Header() {
-  const logout = () => {
+function HeaderUser() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const logout = async () => {
     const confirmLogout = window.confirm('Are you sure you want to log out?');
     if (confirmLogout) {
-      sessionStorage.removeItem('access_token');
-      setTimeout(() => {
-        window.location.href = '/'; // Redirect to guest page
-      }, 100);
+      try {
+        const response = await fetch('http://localhost:8000/Ebiblioteka/api/logout/', {
+          method: 'POST',
+          credentials: 'include',
+        });
+
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('user_role');
+        localStorage.removeItem('username');
+
+        if (response.ok) {
+          window.location.href = '/';
+        } else {
+          console.error('Logout failed');
+          alert('Failed to log out. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error during logout:', error);
+        alert('An error occurred while logging out. Please try again.');
+      }
     }
   };
 
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen);
+  };
+
   return (
-    <header style={styles.header}>
-      <h1 style={styles.title}>Book Explorer</h1>
-      <nav>
-        <ul style={styles.navList}>
-          <li>
-            <a href="/features" style={styles.navLink}>Home</a>
-          </li>
-          <li>
-            <a href="/features/categoriesus" style={styles.navLink}>Categories</a>
-          </li>
-          <li>
-            <a href="/features/search" style={styles.navLink}>Search</a>
-          </li>
-          <li>
-            <a href="/features/useredit" style={styles.navLink}>Profile Info</a>
-          </li>
-          <li>
-            <button onClick={logout} style={styles.logoutButton}>Logout</button>
-          </li>
-        </ul>
-      </nav>
+    <header className="header">
+      <div className="header-inner">
+        <h1 className="title">Book Explorer</h1>
+
+        <button className="hamburger" onClick={toggleMenu} aria-label="Toggle menu">
+          <span className={`bar ${menuOpen ? 'open' : ''}`}></span>
+          <span className={`bar ${menuOpen ? 'open' : ''}`}></span>
+          <span className={`bar ${menuOpen ? 'open' : ''}`}></span>
+        </button>
+
+        <nav className={`nav ${menuOpen ? 'active' : ''}`}>
+          <ul className="nav-list">
+            <li><a href="/features" className="nav-link">Home</a></li>
+            <li><a href="/features/categoriesus" className="nav-link">Categories</a></li>
+            <li><a href="/features/useredit" className="nav-link">Profile Info</a></li>
+            <li><button onClick={logout} className="logout-button-link">Logout</button></li>
+          </ul>
+        </nav>
+      </div>
     </header>
   );
 }
 
-const styles = {
-  header: {
-    backgroundColor: '#333',
-    color: '#fff',
-    padding: '1rem',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  title: {
-    margin: 0,
-    padding: 0,
-  },
-  navList: {
-    listStyle: 'none',
-    display: 'flex',
-    gap: '1rem',
-    marginTop: '0.5rem',
-    padding: 0,
-  },
-  navLink: {
-    color: '#fff',
-    textDecoration: 'none',
-  },
-  logoutButton: {
-    backgroundColor: '#f44336',
-    color: 'white',
-    border: 'none',
-    padding: '0.5rem 1rem',
-    cursor: 'pointer',
-  },
-};
-
-export default Header;
+export default HeaderUser;

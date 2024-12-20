@@ -54,21 +54,16 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         access_token = data['access']
         session_key = data['session_key']
 
-        # Set cookies for refresh token, access token, and session key
+        # Return the access token in the response body only
         response = Response({
             'access': access_token,
+            'role': user.role  # If you want to pass role back to client
         }, status=status.HTTP_200_OK)
 
+        # Keep the refresh token and session_key in secure, HttpOnly cookies
         response.set_cookie(
             'refresh_token',
             refresh_token,
-            httponly=True,
-            secure=True,
-            samesite='Strict',
-        )
-        response.set_cookie(
-            'access_token',
-            access_token,
             httponly=True,
             secure=True,
             samesite='Strict',
@@ -81,15 +76,23 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             samesite='Strict',
         )
 
-        return response
+        # REMOVE THE LINE SETTING THE ACCESS COOKIE
+        # response.set_cookie(
+        #     'access_token',
+        #     access_token,
+        #     httponly=True,
+        #     secure=True,
+        #     samesite='Strict',
+        # )
 
+        return response
 
 
 class CustomTokenRefreshView(TokenRefreshView):
     serializer_class = CustomTokenRefreshSerializer
 
     def post(self, request, *args, **kwargs):
-        # Get tokens from cookies
+        # We still read the refresh token and session_key from cookies
         refresh_token = request.COOKIES.get('refresh_token')
         session_key = request.COOKIES.get('session_key')
 
@@ -103,22 +106,29 @@ class CustomTokenRefreshView(TokenRefreshView):
         })
         serializer.is_valid(raise_exception=True)
 
-        # Update cookies with new refresh token
-        response = Response(serializer.validated_data, status=status.HTTP_200_OK)
-        new_refresh_token = serializer.validated_data.get('refresh')
+        # The serializer returns a new access (and possibly refresh) token
+        data = serializer.validated_data
 
-        # Remove refresh token from response data
-        if 'refresh' in response.data:
-            del response.data['refresh']
+        # Remove the refresh token from the response body to enforce using cookies only
+        new_refresh_token = data.get('refresh')
+        if 'refresh' in data:
+            del data['refresh']
 
-        # Update the refresh token cookie
-        response.set_cookie(
-            'refresh_token',
-            new_refresh_token,
-            httponly=True,
-            secure=True,  # Set to True in production
-            samesite='Strict',
-        )
+        response = Response(data, status=status.HTTP_200_OK)
+
+        # Update the refresh token cookie if a new one was rotated
+        if new_refresh_token:
+            response.set_cookie(
+                'refresh_token',
+                new_refresh_token,
+                httponly=True,
+                secure=True,
+                samesite='Strict',
+            )
+
+        # DO NOT set access token in cookie
+        # The access token is only returned in the response body
+        # response.set_cookie('access_token', ... ) # <- Removed
 
         return response
 

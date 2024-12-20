@@ -108,7 +108,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
-    'Ebiblioteka.middleware.TokenRefreshMiddleware'
 ]
 
 ROOT_URLCONF = 'djangoProject2.urls'

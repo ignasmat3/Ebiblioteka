@@ -5,50 +5,47 @@ import './page.css';
 
 function UserEdit() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [userId, setUserId] = useState(null); // Holds the user's PK (ID)
+  const [userId, setUserId] = useState(null);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState('guest');
+
+  const [newPassword, setNewPassword] = useState('');
+  const [newPassword2, setNewPassword2] = useState('');
+
   const [errorMsg, setErrorMsg] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    fetchCurrentUserId(); // First, fetch the user's ID
+    fetchCurrentUserId();
   }, []);
 
   useEffect(() => {
     if (userId) {
-      fetchUserDetails(); // Fetch user details after ID is retrieved
+      fetchUserDetails();
     }
   }, [userId]);
 
-  // Fetch the logged-in user's ID
   const fetchCurrentUserId = async () => {
     try {
       const response = await authFetch('http://localhost:8000/Ebiblioteka/api/user/details/');
       if (!response.ok) throw new Error('Failed to fetch user details');
       const data = await response.json();
-      setUserId(data.id); // Extract user ID
-      setUsername(data.username); // Optional: Populate username
-      setEmail(data.email); // Optional: Populate email
-      setRole(data.role); // Optional: Populate role
+      setUserId(data.id);
+      setUsername(data.username);
+      setEmail(data.email);
     } catch (err) {
       setErrorMsg('Error fetching user ID.');
     }
   };
 
-  // Fetch the user details for editing
   const fetchUserDetails = async () => {
     try {
       const response = await authFetch(`http://localhost:8000/Ebiblioteka/users/${userId}/detail`);
       if (!response.ok) throw new Error('Failed to fetch user details');
       const data = await response.json();
-      setUser(data);
       setUsername(data.username);
       setEmail(data.email);
-      setRole(data.role);
     } catch (err) {
       setErrorMsg('Error fetching user details.');
     }
@@ -60,17 +57,25 @@ function UserEdit() {
     setErrorMsg(null);
     setSuccessMsg(null);
 
+    const updateData = { username, email };
+    if (newPassword || newPassword2) {
+      updateData.password = newPassword;
+      updateData.password2 = newPassword2;
+    }
+
     try {
       const response = await authFetch(`http://localhost:8000/Ebiblioteka/users/${userId}/update`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, email, role }),
+        body: JSON.stringify(updateData),
       });
 
       if (!response.ok) throw new Error('Failed to update user details');
 
       setSuccessMsg('User details updated successfully.');
       fetchUserDetails();
+      setNewPassword('');
+      setNewPassword2('');
     } catch (err) {
       setErrorMsg('Error updating user details.');
     } finally {
@@ -80,7 +85,6 @@ function UserEdit() {
 
   const handleDeleteUser = async () => {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
-
     setIsLoading(true);
     try {
       const response = await authFetch(`http://localhost:8000/Ebiblioteka/users/${userId}/delete`, {
@@ -89,7 +93,7 @@ function UserEdit() {
 
       if (!response.ok) throw new Error('Failed to delete user');
 
-      navigate('/users/list'); // Redirect to the user list after deletion
+      navigate('/logout');
     } catch (err) {
       setErrorMsg('Error deleting user.');
     } finally {
@@ -97,82 +101,77 @@ function UserEdit() {
     }
   };
 
-  if (!user) return <p>Loading user details...</p>;
+  if (!userId) return <p className="loading-message">Loading user details...</p>;
 
   return (
-    <div>
-      {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
-      {successMsg && <p style={{ color: 'green' }}>{successMsg}</p>}
+    <div className="auth-page-container">
+      <div className="auth-form-container">
+        <h2 className="section-title">Edit Profile</h2>
 
-      <h2>Edit User</h2>
+        {errorMsg && <p className="error-message">{errorMsg}</p>}
+        {successMsg && <p className="success-message">{successMsg}</p>}
 
-      <form onSubmit={handleFormSubmit}>
-        <div style={{ marginBottom: '10px' }}>
-          <label htmlFor="username">Username:</label>
-          <input
-            type="text"
-            id="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            disabled={isLoading}
-          />
-        </div>
+        <form onSubmit={handleFormSubmit} className="auth-form">
+          <div className="form-group">
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              disabled={isLoading}
+              required
+            />
+          </div>
 
-        <div style={{ marginBottom: '10px' }}>
-          <label htmlFor="email">Email:</label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={isLoading}
-          />
-        </div>
+          <div className="form-group">
+            <input
+              type="email"
+              className="form-input"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isLoading}
+              required
+            />
+          </div>
 
-        <div style={{ marginBottom: '10px' }}>
-          <label htmlFor="role">Role:</label>
-          <select
-            id="role"
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            disabled={isLoading}
-          >
-            <option value="guest">Guest</option>
-            <option value="reader">Reader</option>
-            <option value="librarian">Librarian</option>
-            <option value="admin">Admin</option>
-          </select>
-        </div>
+          <div className="form-group">
+            <input
+              type="password"
+              className="form-input"
+              placeholder="New Password (optional)"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              disabled={isLoading}
+            />
+          </div>
+
+          <div className="form-group">
+            <input
+              type="password"
+              className="form-input"
+              placeholder="Confirm New Password (optional)"
+              value={newPassword2}
+              onChange={(e) => setNewPassword2(e.target.value)}
+              disabled={isLoading}
+            />
+          </div>
+
+          <button type="submit" className="submit-button" disabled={isLoading}>
+            Save Changes
+          </button>
+        </form>
 
         <button
-          type="submit"
-          style={{
-            backgroundColor: '#008CBA',
-            color: 'white',
-            padding: '10px',
-            border: 'none',
-            cursor: 'pointer',
-          }}
+          onClick={handleDeleteUser}
+          className="submit-button"
+          style={{ backgroundColor: '#f44336', marginTop: '20px' }}
           disabled={isLoading}
         >
-          Save Changes
+          Delete Account
         </button>
-      </form>
-
-      <button
-        onClick={handleDeleteUser}
-        style={{
-          backgroundColor: '#f44336',
-          color: 'white',
-          padding: '10px',
-          border: 'none',
-          cursor: 'pointer',
-          marginTop: '20px',
-        }}
-        disabled={isLoading}
-      >
-        Delete User
-      </button>
+      </div>
     </div>
   );
 }
