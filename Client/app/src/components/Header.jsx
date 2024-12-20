@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './Header.css'; // Make sure this file exists and is in the same directory
+import './Header.css'; // Make sure the updated CSS file is here
 
 function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -11,7 +11,10 @@ function Header() {
   return (
     <header className="header">
       <div className="header-inner">
-        <h1 className="title">Book Explorer</h1>
+        <h1 className="title">
+          <div className="logo"></div>
+          Book Explorer
+        </h1>
 
         <button className="hamburger" onClick={toggleMenu} aria-label="Toggle menu">
           <span className={`bar ${menuOpen ? 'open' : ''}`}></span>

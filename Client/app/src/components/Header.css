@@ -19,6 +19,18 @@ body {
   margin: 0 auto;
 }
 
+/* Logo (Emblem) */
+.logo {
+  width: 40px;
+  height: 40px;
+  background-image: url('../images/img.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin-right: 1rem;
+  border-radius: 50%; /* Optional: makes the image round like an emblem */
+}
+
 .title {
   margin: 0;
   font-size: 1.7rem;

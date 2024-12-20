@@ -37,7 +37,10 @@ function HeaderUser() {
   return (
     <header className="header">
       <div className="header-inner">
-        <h1 className="title">Book Explorer</h1>
+        <h1 className="title">
+          <div className="logo"></div>
+          Book Explorer
+        </h1>
 
         <button className="hamburger" onClick={toggleMenu} aria-label="Toggle menu">
           <span className={`bar ${menuOpen ? 'open' : ''}`}></span>
