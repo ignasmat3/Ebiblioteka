@@ -43,39 +43,41 @@ import jwt
 
 def is_session_expired(request):
     """
-    1. Decode the JWT from Authorization header.
-    2. Extract the user_id (or session_key if you store it in claims).
-    3. Check the DB to see if the session is expired.
+    1. Read session_key from the cookie (since you’re storing it as HttpOnly cookie).
+    2. Decode/verify the JWT from the Authorization header to ensure the token is valid.
+    3. Check the DB to see if the session is expired (using session_key).
     """
-    auth_header = request.headers.get('Authorization')
-    if not auth_header or not auth_header.startswith('Bearer '):
-        return True  # If no token, treat as 'expired' (or raise PermissionDenied)
 
-    try:
-        token_str = auth_header.split(' ')[1]
-        payload = jwt.decode(token_str, settings.SECRET_KEY, algorithms=["HS256"])
-
-        # We assume you store the session_key or user_id in the JWT claims
-        # For example: payload['session_key'] or payload['user_id']
-        session_key = payload.get('session_key')
-        if not session_key:
-            return True
-
-        # Look up the session in DB
-        try:
-            session_obj = UserSession.objects.get(session_key=session_key)
-            if session_obj.expired:
-                return True
-            # if session_obj has a 'last_active' check or something, you can also check inactivity here
-            return False
-        except UserSession.DoesNotExist:
-            return True
-
-    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+    # 1. Get session_key from cookie
+    session_key = request.COOKIES.get('session_key')
+    if not session_key:
+        # If there's no session_key cookie, user doesn't have a valid session
         return True
 
-    # If anything goes wrong, default to 'True' meaning session is invalid
-    return True
+    # 2. Get and verify the JWT from Authorization header
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        # No Bearer token means no valid access token
+        return True
+
+    token_str = auth_header.split(' ')[1]
+    try:
+        # Just decode to ensure validity; store user_id in payload if needed
+        payload = jwt.decode(token_str, settings.SECRET_KEY, algorithms=["HS256"])
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        # If token has expired or is otherwise invalid, session is effectively invalid
+        return True
+
+    # 3. Check session_key in DB
+    try:
+        session_obj = UserSession.objects.get(session_key=session_key)
+        if session_obj.expired:
+            return True
+        # Optionally, you could check 'last_active' or other logic to see if the session is stale
+        return False
+    except UserSession.DoesNotExist:
+        return True
+
 
 
 class AllowAny(BasePermission):
