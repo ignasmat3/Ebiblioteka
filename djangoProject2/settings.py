@@ -13,6 +13,10 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 from datetime import timedelta
 
+import dj_database_url
+import os
+from tutorial.settings import DATABASES
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,29 +25,32 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-8%sa-d+3aiwz9)hppdgkiu_!jxadl*yxrq+j8b@k3d0#=9+l7j'
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = True
 
-ALLOWED_HOSTS = ['.vercel.app']
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(" ")
 
 AUTH_USER_MODEL = 'Ebiblioteka.User'
 # # Application definition
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'Elektro',
-        'USER': 'Ignas',
-        'PASSWORD': 'Hermis123',
-        'HOST': 'database-1.cx8uac2m4ss9.eu-north-1.rds.amazonaws.com',
-        'PORT': '5432',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'Elektro',
+#         'USER': 'Ignas',
+#         'PASSWORD': 'Hermis123',
+#         'HOST': 'database-1.cx8uac2m4ss9.eu-north-1.rds.amazonaws.com',
+#         'PORT': '5432',
+#     }
+# }
+database_url = os.environ.get("DATABASE_URL")
+DATABASES["default"] = dj_database_url.parse(database_url)
+# postgresql://elektro_user:8EvWqc59ly4UHbOtu0PEYDAaoSkpvbmR@dpg-ctjdf83qf0us739b93l0-a.frankfurt-postgres.render.com/elektro
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=180),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=50),
