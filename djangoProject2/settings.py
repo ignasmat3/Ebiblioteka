@@ -49,11 +49,11 @@ DATABASES = {
         'PORT': '5432',
     }
 }
-database_url = os.environ.get("DATABASE_URL")
-DATABASES["default"] = dj_database_url.parse(database_url)
-
 # database_url = os.environ.get("DATABASE_URL")
 # DATABASES["default"] = dj_database_url.parse(database_url)
+
+database_url = os.environ.get("DATABASE_URL")
+DATABASES["default"] = dj_database_url.parse(database_url)
 
 # postgresql://elektro_user:8EvWqc59ly4UHbOtu0PEYDAaoSkpvbmR@dpg-ctjdf83qf0us739b93l0-a.frankfurt-postgres.render.com/elektro
 SIMPLE_JWT = {

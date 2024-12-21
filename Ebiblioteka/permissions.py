@@ -36,18 +36,46 @@ def get_role_from_token(request):
         raise PermissionDenied("Invalid token.")
 
 
-def is_token_blacklisted(request):
-    # Extract token from the Authorization header
+from rest_framework.exceptions import PermissionDenied
+from .models import UserSession
+from django.utils import timezone
+import jwt
+
+def is_session_expired(request):
+    """
+    1. Decode the JWT from Authorization header.
+    2. Extract the user_id (or session_key if you store it in claims).
+    3. Check the DB to see if the session is expired.
+    """
     auth_header = request.headers.get('Authorization')
-    if not auth_header:
-        return False
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return True  # If no token, treat as 'expired' (or raise PermissionDenied)
 
     try:
-        token = auth_header.split(' ')[1]
-        jti = AccessToken(token)['jti']
-        return cache.get(f"blacklist_{jti}") is not None
-    except Exception:
-        return True  # Treat invalid/missing tokens as blacklisted for security
+        token_str = auth_header.split(' ')[1]
+        payload = jwt.decode(token_str, settings.SECRET_KEY, algorithms=["HS256"])
+
+        # We assume you store the session_key or user_id in the JWT claims
+        # For example: payload['session_key'] or payload['user_id']
+        session_key = payload.get('session_key')
+        if not session_key:
+            return True
+
+        # Look up the session in DB
+        try:
+            session_obj = UserSession.objects.get(session_key=session_key)
+            if session_obj.expired:
+                return True
+            # if session_obj has a 'last_active' check or something, you can also check inactivity here
+            return False
+        except UserSession.DoesNotExist:
+            return True
+
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        return True
+
+    # If anything goes wrong, default to 'True' meaning session is invalid
+    return True
 
 
 class AllowAny(BasePermission):
@@ -57,7 +85,7 @@ class AllowAny(BasePermission):
 
 class IsAdminOrSelfOrLibrarian(BasePermission):
     def has_permission(self, request, view):
-        if is_token_blacklisted(request):
+        if is_session_expired(request):
             raise PermissionDenied("Token is blacklisted.")
 
         role = get_role_from_token(request)
@@ -71,7 +99,7 @@ class IsAdminOrSelfOrSelf(BasePermission):
     Permission class to allow access to admins or the owner of a resource.
     """
     def has_permission(self, request, view):
-        if is_token_blacklisted(request):
+        if is_session_expired(request):
             raise PermissionDenied("Token is blacklisted.")
 
         # Allow admins
@@ -96,7 +124,7 @@ class IsAdminOrSelfOrSelf(BasePermission):
 class IsAdminOrSelfComment(BasePermission):
     def has_permission(self, request, view):
         # Check if the token is blacklisted
-        if is_token_blacklisted(request):
+        if is_session_expired(request):
             raise PermissionDenied("Token is blacklisted.")
 
         # Admins can access any comment
@@ -130,7 +158,7 @@ class IsAdmin(BasePermission):
 
 class IsLibrarian(BasePermission):
     def has_permission(self, request, view):
-        if is_token_blacklisted(request):
+        if is_session_expired(request):
             raise PermissionDenied("Token is blacklisted.")
 
         return request.user.role == 'librarian'

@@ -161,72 +161,42 @@ class smthsmth(APIView):
 
 
 class LogoutView(APIView):
+    """
+    We no longer parse or blacklist the access token. Instead, we rely on
+    marking the session as expired in the database.
+    """
     def post(self, request):
         print("=== [LOGOUT VIEW] POST method triggered ===")
 
         # 1. Refresh token & session_key from cookies
         refresh_token = request.COOKIES.get('refresh_token')
-        # session_key = request.COOKIES.get('session_key')
+        session_key = request.COOKIES.get('session_key')
 
-        # 2. Access token from the Authorization header
-        auth_header = request.headers.get('Authorization')
-        access_token_raw = None
-        if auth_header and auth_header.startswith('Bearer '):
-            access_token_raw = auth_header.split(' ')[1]
+        # We won't even look at the Authorization header for the access token now
+        # because we are skipping token blacklisting altogether.
 
         print(f"=== Debug: refresh_token = {refresh_token}")
-        # print(f"=== Debug: session_key   = {session_key}")
-        print(f"=== Debug: auth_header   = {auth_header}")
-        print(f"=== Debug: access_token_raw = {access_token_raw}")
+        print(f"=== Debug: session_key   = {session_key}")
 
+        # If you still require refresh_token and session_key:
         if not refresh_token:
             print("=== Debug: Missing refresh token. Returning 400. ===")
             return Response({'error': 'Missing refresh token.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # if not session_key:
-        #     print("=== Debug: Missing session key. Returning 400. ===")
-        #     return Response({'error': 'Missing session key.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not session_key:
+            print("=== Debug: Missing session key. Returning 400. ===")
+            return Response({'error': 'Missing session key.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if not access_token_raw:
-            print("=== Debug: Missing access token. Returning 400. ===")
-            return Response({'error': 'Missing access token.'}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            print("=== Debug: Parsing access token ===")
-            access_token = AccessToken(access_token_raw)
-            access_jti = access_token['jti']
-            access_exp = access_token['exp']
-            access_iat = access_token['iat']
-            print(f"=== Debug: Access Token Info: jti={access_jti}, exp={access_exp}, iat={access_iat} ===")
-
-            print("=== Debug: Blacklisting access token in cache ===")
-            cache.set(
-                f"blacklist_{access_jti}",
-                "blacklisted",
-                timeout=access_exp - int(access_iat)
-            )
-
-            print("=== Debug: Parsing refresh token ===")
-            refresh = RefreshToken(refresh_token)
-            refresh_jti = refresh['jti']
-            refresh_exp = refresh['exp']
-            refresh_iat = refresh['iat']
-            print(f"=== Debug: Refresh Token Info: jti={refresh_jti}, exp={refresh_exp}, iat={refresh_iat} ===")
-
-            print("=== Debug: Blacklisting refresh token in cache ===")
-            cache.set(
-                f"blacklist_{refresh_jti}",
-                "blacklisted",
-                timeout=refresh_exp - int(refresh_iat)
-            )
-
+            # 2. Mark the session in the DB as expired
             print("=== Debug: Retrieving user session from DB ===")
-            # session = UserSession.objects.get(session_key=session_key, expired=False)
-            print(f"=== Debug: Found session (ID={session.id}). Marking as expired ===")
+            session = UserSession.objects.get(session_key=session_key, expired=False)
+            print(f"=== Debug: Found session (ID={session.id}). Marking as expired. ===")
             session.expired = True
             session.save()
 
-            print("=== Debug: Preparing logout response. Deleting cookies. ===")
-            response = Response({'success': 'Logged out successfully.'}, status=status.HTTP_200_OK)
+            # 3. Prepare response: delete cookies if you want
+            response = Response({'success': 'Session expired; user is logged out.'}, status=status.HTTP_200_OK)
             response.delete_cookie('session_key')
             response.delete_cookie('refresh_token')
 
@@ -235,12 +205,11 @@ class LogoutView(APIView):
 
         except UserSession.DoesNotExist:
             print("=== Debug: Session does not exist or is already expired. Returning 400. ===")
-            logger.error("Session does not exist or already expired.")
             return Response({'error': 'Invalid or expired session key.'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             print(f"=== Debug: Exception caught: {str(e)} ===")
-            logger.error(f"Error during logout: {str(e)}")
             return Response({'error': 'An error occurred during logout.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 # ----------------- Book Views -----------------
 @api_view(['GET'])
 @permission_classes([AllowAny])  # Allow any for GET, check manually for POST
