@@ -179,10 +179,17 @@ class LogoutView(APIView):
         print(f"=== Debug: auth_header   = {auth_header}")
         print(f"=== Debug: access_token_raw = {access_token_raw}")
 
-        if not refresh_token or not session_key or not access_token_raw:
-            print("=== Debug: Missing tokens or session key. Returning 400. ===")
-            return Response({'error': 'Missing tokens or session key.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not refresh_token:
+            print("=== Debug: Missing refresh token. Returning 400. ===")
+            return Response({'error': 'Missing refresh token.'}, status=status.HTTP_400_BAD_REQUEST)
 
+        if not session_key:
+            print("=== Debug: Missing session key. Returning 400. ===")
+            return Response({'error': 'Missing session key.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not access_token_raw:
+            print("=== Debug: Missing access token. Returning 400. ===")
+            return Response({'error': 'Missing access token.'}, status=status.HTTP_400_BAD_REQUEST)
         try:
             print("=== Debug: Parsing access token ===")
             access_token = AccessToken(access_token_raw)
