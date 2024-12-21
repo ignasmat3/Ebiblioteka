@@ -14,7 +14,7 @@ function UserListPage() {
 
   const fetchUsers = async () => {
     try {
-      const response = await authFetch('http://localhost:8000/Ebiblioteka/users/list');
+      const response = await authFetch('https://ebiblioteka-7.onrender.com/Ebiblioteka/users/list');
       if (!response.ok) throw new Error('Failed to fetch users');
       const data = await response.json();
       setUsers(data);
@@ -27,7 +27,7 @@ function UserListPage() {
   const handleDeleteUser = async (userId) => {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
     try {
-      const response = await authFetch(`http://localhost:8000/Ebiblioteka/users/${userId}/delete`, {
+      const response = await authFetch(`https://ebiblioteka-7.onrender.com/Ebiblioteka/users/${userId}/delete`, {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Failed to delete user');

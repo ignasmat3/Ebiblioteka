@@ -22,7 +22,7 @@ function RegisterPage() {
     const userData = { username, email, password, password2 };
 
     try {
-      const response = await fetch('http://localhost:8000/Ebiblioteka/users/register', {
+      const response = await fetch('https://ebiblioteka-7.onrender.com/Ebiblioteka/users/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData),

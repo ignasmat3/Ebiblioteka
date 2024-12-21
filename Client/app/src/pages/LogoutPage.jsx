@@ -12,7 +12,7 @@ function LogoutPage() {
 
   const logoutUser = async () => {
     try {
-      const response = await fetch('http://localhost:8000/Ebiblioteka/api/logout/', {
+      const response = await fetch('https://ebiblioteka-7.onrender.com/Ebiblioteka/api/logout/', {
         method: 'POST',
         credentials: 'include' // Include cookies so server can invalidate session
       });

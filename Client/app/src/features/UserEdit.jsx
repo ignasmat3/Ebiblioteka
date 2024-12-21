@@ -28,7 +28,7 @@ function UserEdit() {
 
   const fetchCurrentUserId = async () => {
     try {
-      const response = await authFetch('http://localhost:8000/Ebiblioteka/api/user/details/');
+      const response = await authFetch('https://ebiblioteka-7.onrender.com/Ebiblioteka/api/user/details/');
       if (!response.ok) throw new Error('Failed to fetch user details');
       const data = await response.json();
       setUserId(data.id);
@@ -41,7 +41,7 @@ function UserEdit() {
 
   const fetchUserDetails = async () => {
     try {
-      const response = await authFetch(`http://localhost:8000/Ebiblioteka/users/${userId}/detail`);
+      const response = await authFetch(`https://ebiblioteka-7.onrender.com/Ebiblioteka/users/${userId}/detail`);
       if (!response.ok) throw new Error('Failed to fetch user details');
       const data = await response.json();
       setUsername(data.username);
@@ -64,7 +64,7 @@ function UserEdit() {
     }
 
     try {
-      const response = await authFetch(`http://localhost:8000/Ebiblioteka/users/${userId}/update`, {
+      const response = await authFetch(`https://ebiblioteka-7.onrender.com/Ebiblioteka/users/${userId}/update`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updateData),
@@ -87,7 +87,7 @@ function UserEdit() {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
     setIsLoading(true);
     try {
-      const response = await authFetch(`http://localhost:8000/Ebiblioteka/users/${userId}/delete`, {
+      const response = await authFetch(`https://ebiblioteka-7.onrender.com/Ebiblioteka/users/${userId}/delete`, {
         method: 'DELETE',
       });
 

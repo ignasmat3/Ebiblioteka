@@ -22,7 +22,7 @@ function BookDetail() {
 
   const fetchBookDetail = async () => {
     try {
-      const response = await authFetch(`http://localhost:8000/Ebiblioteka/books/${id}/detail`);
+      const response = await authFetch(`https://ebiblioteka-7.onrender.com/Ebiblioteka/books/${id}/detail`);
       if (!response.ok) throw new Error('Failed to fetch book detail');
       const data = await response.json();
       setBook(data);
@@ -34,7 +34,7 @@ function BookDetail() {
   const fetchBookComments = async (categoryId, bookId) => {
     try {
       const response = await authFetch(
-        `http://localhost:8000/Ebiblioteka/categories/${categoryId}/books/${bookId}/comments/list`
+        `https://ebiblioteka-7.onrender.com/Ebiblioteka/categories/${categoryId}/books/${bookId}/comments/list`
       );
       if (!response.ok) throw new Error('Failed to fetch comments');
       const data = await response.json();
@@ -50,7 +50,7 @@ function BookDetail() {
     // The backend will handle auth, so we just attempt the request.
     try {
       const response = await authFetch(
-        `http://localhost:8000/Ebiblioteka/categories/${book.category}/books/${book.id}/comments/create`,
+        `https://ebiblioteka-7.onrender.com/Ebiblioteka/categories/${book.category}/books/${book.id}/comments/create`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -71,7 +71,7 @@ function BookDetail() {
 
     try {
       const response = await authFetch(
-        `http://localhost:8000/Ebiblioteka/categories/${book.category}/books/${book.id}/comments/${commentId}/delete`,
+        `https://ebiblioteka-7.onrender.com/Ebiblioteka/categories/${book.category}/books/${book.id}/comments/${commentId}/delete`,
         { method: 'DELETE' }
       );
       if (!response.ok) throw new Error('Failed to delete comment.');
@@ -87,7 +87,7 @@ function BookDetail() {
 
     try {
       const response = await authFetch(
-        `http://localhost:8000/Ebiblioteka/categories/${book.category}/books/${book.id}/comments/${commentId}/update`,
+        `https://ebiblioteka-7.onrender.com/Ebiblioteka/categories/${book.category}/books/${book.id}/comments/${commentId}/update`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },

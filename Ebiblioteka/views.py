@@ -158,17 +158,21 @@ class smthsmth(APIView):
         return Response({
             "role": user_role
         })
-
 class LogoutView(APIView):
     def post(self, request):
         logger.info(f"Cookies in request: {request.COOKIES}")
 
-        # Extract refresh_token, access_token, and session_key from cookies
+        # 1. Refresh token & session_key from cookies
         refresh_token = request.COOKIES.get('refresh_token')
-        access_token_raw = request.COOKIES.get('access_token')
         session_key = request.COOKIES.get('session_key')
 
-        if not refresh_token or not access_token_raw or not session_key:
+        # 2. Access token from the Authorization header
+        auth_header = request.headers.get('Authorization')
+        access_token_raw = None
+        if auth_header and auth_header.startswith('Bearer '):
+            access_token_raw = auth_header.split(' ')[1]
+
+        if not refresh_token or not session_key or not access_token_raw:
             return Response({'error': 'Missing tokens or session key.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
@@ -193,9 +197,8 @@ class LogoutView(APIView):
             response = Response({'success': 'Logged out successfully.'}, status=status.HTTP_200_OK)
             response.delete_cookie('session_key')
             response.delete_cookie('refresh_token')
-            response.delete_cookie('access_token')
-
-            logger.info(f"Access and refresh tokens blacklisted. Session expired.")
+            # We never had an access cookie, so nothing to delete_cookie('access_token')
+            logger.info("Access and refresh tokens blacklisted. Session expired.")
             return response
 
         except UserSession.DoesNotExist:

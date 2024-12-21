@@ -1,6 +1,6 @@
 // authFetch.js
 
-const REFRESH_ENDPOINT = 'http://localhost:8000/Ebiblioteka/api/token/refresh/';
+const REFRESH_ENDPOINT = 'https://ebiblioteka-7.onrender.com/Ebiblioteka/api/token/refresh/';
 
 export async function authFetch(url, options = {}) {
   // Retrieve the current access token from localStorage
