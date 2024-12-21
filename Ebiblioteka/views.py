@@ -181,11 +181,11 @@ class LogoutView(APIView):
         # If you still require refresh_token and session_key:
         if not refresh_token:
             print("=== Debug: Missing refresh token. Returning 400. ===")
-            return Response({'error': 'Missing refresh token.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Missing refresh token.'}, status=status.HTTP_401_BAD_REQUEST)
 
         if not session_key:
             print("=== Debug: Missing session key. Returning 400. ===")
-            return Response({'error': 'Missing session key.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Missing session key.'}, status=status.HTTP_402_BAD_REQUEST)
 
         try:
             # 2. Mark the session in the DB as expired
