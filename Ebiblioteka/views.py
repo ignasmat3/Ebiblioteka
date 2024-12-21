@@ -158,9 +158,11 @@ class smthsmth(APIView):
         return Response({
             "role": user_role
         })
+
+
 class LogoutView(APIView):
     def post(self, request):
-        logger.info(f"Cookies in request: {request.COOKIES}")
+        print("=== [LOGOUT VIEW] POST method triggered ===")
 
         # 1. Refresh token & session_key from cookies
         refresh_token = request.COOKIES.get('refresh_token')
@@ -172,42 +174,66 @@ class LogoutView(APIView):
         if auth_header and auth_header.startswith('Bearer '):
             access_token_raw = auth_header.split(' ')[1]
 
+        print(f"=== Debug: refresh_token = {refresh_token}")
+        print(f"=== Debug: session_key   = {session_key}")
+        print(f"=== Debug: auth_header   = {auth_header}")
+        print(f"=== Debug: access_token_raw = {access_token_raw}")
+
         if not refresh_token or not session_key or not access_token_raw:
+            print("=== Debug: Missing tokens or session key. Returning 400. ===")
             return Response({'error': 'Missing tokens or session key.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # 1. Blacklist the access token
+            print("=== Debug: Parsing access token ===")
             access_token = AccessToken(access_token_raw)
             access_jti = access_token['jti']
             access_exp = access_token['exp']
-            cache.set(f"blacklist_{access_jti}", "blacklisted", timeout=access_exp - int(access_token['iat']))
+            access_iat = access_token['iat']
+            print(f"=== Debug: Access Token Info: jti={access_jti}, exp={access_exp}, iat={access_iat} ===")
 
-            # 2. Blacklist the refresh token
+            print("=== Debug: Blacklisting access token in cache ===")
+            cache.set(
+                f"blacklist_{access_jti}",
+                "blacklisted",
+                timeout=access_exp - int(access_iat)
+            )
+
+            print("=== Debug: Parsing refresh token ===")
             refresh = RefreshToken(refresh_token)
             refresh_jti = refresh['jti']
             refresh_exp = refresh['exp']
-            cache.set(f"blacklist_{refresh_jti}", "blacklisted", timeout=refresh_exp - int(refresh['iat']))
+            refresh_iat = refresh['iat']
+            print(f"=== Debug: Refresh Token Info: jti={refresh_jti}, exp={refresh_exp}, iat={refresh_iat} ===")
 
-            # 3. Expire the session in the database
+            print("=== Debug: Blacklisting refresh token in cache ===")
+            cache.set(
+                f"blacklist_{refresh_jti}",
+                "blacklisted",
+                timeout=refresh_exp - int(refresh_iat)
+            )
+
+            print("=== Debug: Retrieving user session from DB ===")
             session = UserSession.objects.get(session_key=session_key, expired=False)
+            print(f"=== Debug: Found session (ID={session.id}). Marking as expired ===")
             session.expired = True
             session.save()
 
-            # 4. Prepare response: delete cookies
+            print("=== Debug: Preparing logout response. Deleting cookies. ===")
             response = Response({'success': 'Logged out successfully.'}, status=status.HTTP_200_OK)
             response.delete_cookie('session_key')
             response.delete_cookie('refresh_token')
-            # We never had an access cookie, so nothing to delete_cookie('access_token')
-            logger.info("Access and refresh tokens blacklisted. Session expired.")
+
+            print("=== Debug: Logout successful. Returning 200 OK. ===")
             return response
 
         except UserSession.DoesNotExist:
+            print("=== Debug: Session does not exist or is already expired. Returning 400. ===")
             logger.error("Session does not exist or already expired.")
             return Response({'error': 'Invalid or expired session key.'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
+            print(f"=== Debug: Exception caught: {str(e)} ===")
             logger.error(f"Error during logout: {str(e)}")
             return Response({'error': 'An error occurred during logout.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 # ----------------- Book Views -----------------
 @api_view(['GET'])
 @permission_classes([AllowAny])  # Allow any for GET, check manually for POST
