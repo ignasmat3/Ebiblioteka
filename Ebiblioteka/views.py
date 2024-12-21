@@ -166,7 +166,7 @@ class LogoutView(APIView):
 
         # 1. Refresh token & session_key from cookies
         refresh_token = request.COOKIES.get('refresh_token')
-        session_key = request.COOKIES.get('session_key')
+        # session_key = request.COOKIES.get('session_key')
 
         # 2. Access token from the Authorization header
         auth_header = request.headers.get('Authorization')
@@ -175,7 +175,7 @@ class LogoutView(APIView):
             access_token_raw = auth_header.split(' ')[1]
 
         print(f"=== Debug: refresh_token = {refresh_token}")
-        print(f"=== Debug: session_key   = {session_key}")
+        # print(f"=== Debug: session_key   = {session_key}")
         print(f"=== Debug: auth_header   = {auth_header}")
         print(f"=== Debug: access_token_raw = {access_token_raw}")
 
@@ -183,9 +183,9 @@ class LogoutView(APIView):
             print("=== Debug: Missing refresh token. Returning 400. ===")
             return Response({'error': 'Missing refresh token.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if not session_key:
-            print("=== Debug: Missing session key. Returning 400. ===")
-            return Response({'error': 'Missing session key.'}, status=status.HTTP_400_BAD_REQUEST)
+        # if not session_key:
+        #     print("=== Debug: Missing session key. Returning 400. ===")
+        #     return Response({'error': 'Missing session key.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if not access_token_raw:
             print("=== Debug: Missing access token. Returning 400. ===")
@@ -220,7 +220,7 @@ class LogoutView(APIView):
             )
 
             print("=== Debug: Retrieving user session from DB ===")
-            session = UserSession.objects.get(session_key=session_key, expired=False)
+            # session = UserSession.objects.get(session_key=session_key, expired=False)
             print(f"=== Debug: Found session (ID={session.id}). Marking as expired ===")
             session.expired = True
             session.save()
