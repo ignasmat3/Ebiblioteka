@@ -15,7 +15,7 @@ from datetime import timedelta
 
 import dj_database_url
 import os
-from tutorial.settings import DATABASES
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -38,16 +38,16 @@ ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(" ")
 
 AUTH_USER_MODEL = 'Ebiblioteka.User'
 # # Application definition
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': 'Elektro',
-#         'USER': 'Ignas',
-#         'PASSWORD': 'Hermis123',
-#         'HOST': 'database-1.cx8uac2m4ss9.eu-north-1.rds.amazonaws.com',
-#         'PORT': '5432',
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'Elektro',
+        'USER': 'Ignas',
+        'PASSWORD': 'Hermis123',
+        'HOST': 'database-1.cx8uac2m4ss9.eu-north-1.rds.amazonaws.com',
+        'PORT': '5432',
+    }
+}
 database_url = os.environ.get("DATABASE_URL")
 DATABASES["default"] = dj_database_url.parse(database_url)
 
