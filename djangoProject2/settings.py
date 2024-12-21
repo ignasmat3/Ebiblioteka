@@ -50,7 +50,6 @@ AUTH_USER_MODEL = 'Ebiblioteka.User'
 # }
 database_url = os.environ.get("DATABASE_URL")
 DATABASES["default"] = dj_database_url.parse(database_url)
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'djangoProject2.settings')
 
 # postgresql://elektro_user:8EvWqc59ly4UHbOtu0PEYDAaoSkpvbmR@dpg-ctjdf83qf0us739b93l0-a.frankfurt-postgres.render.com/elektro
 SIMPLE_JWT = {
@@ -181,5 +180,5 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'djangoProject2.settings')
 CORS_ALLOW_ALL_ORIGINS = True
