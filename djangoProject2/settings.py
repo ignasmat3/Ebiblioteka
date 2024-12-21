@@ -34,7 +34,8 @@ DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = True
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(" ")
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "ebiblioteka-7.onrender.com 127.0.0.1 localhost").split(" ")
+
 
 AUTH_USER_MODEL = 'Ebiblioteka.User'
 # # Application definition
