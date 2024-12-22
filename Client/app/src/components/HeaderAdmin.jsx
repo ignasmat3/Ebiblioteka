@@ -1,19 +1,36 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom'; // Import useNavigate
 import './Header.css';
 
 function HeaderAdmin() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate(); // Initialize navigate function
 
-  const logout = () => {
+  const logout = async () => {
     const confirmLogout = window.confirm('Are you sure you want to log out?');
     if (confirmLogout) {
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('username');
-      localStorage.removeItem('user_role');
-      setTimeout(() => {
-        window.location.href = '/'; // Redirect after logout
-      }, 100);
+      try {
+        // Simulate API call if needed
+        const response = await fetch('https://ebiblioteka-7.onrender.com/Ebiblioteka/api/logout', {
+          method: 'POST',
+          credentials: 'include',
+        });
+
+        // Clear local storage
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('username');
+        localStorage.removeItem('user_role');
+
+        if (response.ok) {
+          navigate('/'); // Redirect using React Router
+        } else {
+          console.error('Logout failed');
+          alert('Failed to log out. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error during logout:', error);
+        alert('An error occurred while logging out. Please try again.');
+      }
     }
   };
 
@@ -48,3 +65,4 @@ function HeaderAdmin() {
 }
 
 export default HeaderAdmin;
+
