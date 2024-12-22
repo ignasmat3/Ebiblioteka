@@ -14,7 +14,7 @@ function CategoriesPage() {
 
   const fetchCategories = async () => {
     try {
-      const response = await authFetch('http://localhost:8000/Ebiblioteka/categories/list');
+      const response = await authFetch('https://ebiblioteka-7.onrender.com/Ebiblioteka/categories/list');
       if (!response.ok) throw new Error('Failed to fetch categories');
       const data = await response.json();
       setCategories(data);
@@ -31,7 +31,7 @@ function CategoriesPage() {
   const handleDeleteCategory = async (categoryId) => {
     if (!window.confirm('Are you sure you want to delete this category?')) return;
     try {
-      const response = await authFetch(`http://localhost:8000/Ebiblioteka/categories/${categoryId}/delete`, {
+      const response = await authFetch(`https://ebiblioteka-7.onrender.com/Ebiblioteka/categories/${categoryId}/delete`, {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Failed to delete category');

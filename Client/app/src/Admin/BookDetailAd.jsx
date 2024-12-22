@@ -27,7 +27,7 @@ function BookDetailAd() {
 
   const fetchBookDetail = async () => {
     try {
-      const response = await authFetch(`http://localhost:8000/Ebiblioteka/books/${id}/detail`);
+      const response = await authFetch(`https://ebiblioteka-7.onrender.com/Ebiblioteka/books/${id}/detail`);
       if (!response.ok) throw new Error('Failed to fetch book detail');
       const data = await response.json();
       setBook(data);
@@ -39,7 +39,7 @@ function BookDetailAd() {
   const fetchBookComments = async (categoryId, bookId) => {
     try {
       const response = await authFetch(
-        `http://localhost:8000/Ebiblioteka/categories/${categoryId}/books/${bookId}/comments/list`
+        `https://ebiblioteka-7.onrender.com/Ebiblioteka/categories/${categoryId}/books/${bookId}/comments/list`
       );
       if (!response.ok) throw new Error('Failed to fetch comments');
       const data = await response.json();
@@ -58,7 +58,7 @@ function BookDetailAd() {
     setIsLoading(true);
     try {
       const response = await authFetch(
-        `http://localhost:8000/Ebiblioteka/categories/${book.category}/books/${book.id}/comments/create`,
+        `https://ebiblioteka-7.onrender.com/Ebiblioteka/categories/${book.category}/books/${book.id}/comments/create`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -80,7 +80,7 @@ function BookDetailAd() {
     setIsLoading(true);
     try {
       const response = await authFetch(
-        `http://localhost:8000/Ebiblioteka/categories/${book.category}/books/${book.id}/comments/${commentId}/delete`,
+        `https://ebiblioteka-7.onrender.com/Ebiblioteka/categories/${book.category}/books/${book.id}/comments/${commentId}/delete`,
         { method: 'DELETE' }
       );
       if (!response.ok) throw new Error('Failed to delete comment.');
@@ -98,7 +98,7 @@ function BookDetailAd() {
     setIsLoading(true);
     try {
       const response = await authFetch(
-        `http://localhost:8000/Ebiblioteka/categories/${book.category}/books/${book.id}/comments/${commentId}/update`,
+        `https://ebiblioteka-7.onrender.com/Ebiblioteka/categories/${book.category}/books/${book.id}/comments/${commentId}/update`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -127,7 +127,7 @@ function BookDetailAd() {
 
     setIsLoading(true);
     try {
-      const response = await authFetch(`http://localhost:8000/Ebiblioteka/books/${id}/update`, {
+      const response = await authFetch(`https://ebiblioteka-7.onrender.com/Ebiblioteka/books/${id}/update`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

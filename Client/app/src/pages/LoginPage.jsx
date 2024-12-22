@@ -14,7 +14,7 @@ function LoginPage() {
     const credentials = { username, password };
 
     try {
-      const response = await fetch('http://localhost:8000/Ebiblioteka/api/token/', {
+      const response = await fetch('https://ebiblioteka-7.onrender.com/Ebiblioteka/api/token/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

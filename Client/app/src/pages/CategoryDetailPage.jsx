@@ -13,7 +13,7 @@ function CategoryDetailPage() {
 
   const fetchCategoryDetail = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/Ebiblioteka/categories/${id}/detail`);
+      const response = await fetch(`https://ebiblioteka-7.onrender.com/Ebiblioteka/categories/${id}/detail`);
       if (!response.ok) throw new Error('Failed to fetch category detail');
       const data = await response.json();
       setCategory(data);

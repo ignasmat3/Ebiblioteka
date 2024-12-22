@@ -15,7 +15,7 @@ function CategoryDetailPage() {
 
   const fetchCategoryDetail = async () => {
     try {
-      const response = await authFetch(`http://localhost:8000/Ebiblioteka/categories/${id}/detail`);
+      const response = await authFetch(`https://ebiblioteka-7.onrender.com/Ebiblioteka/categories/${id}/detail`);
       if (!response.ok) throw new Error('Failed to fetch category detail');
       const data = await response.json();
       setCategory(data);
@@ -36,7 +36,7 @@ function CategoryDetailPage() {
   const handleDeleteBook = async (bookId) => {
     if (!window.confirm('Are you sure you want to delete this book?')) return;
     try {
-      const response = await authFetch(`http://localhost:8000/Ebiblioteka/books/${bookId}/delete`, {
+      const response = await authFetch(`https://ebiblioteka-7.onrender.com/Ebiblioteka/books/${bookId}/delete`, {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Failed to delete book');

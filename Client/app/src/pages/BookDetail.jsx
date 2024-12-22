@@ -33,7 +33,7 @@ function BookDetail() {
 
   const fetchBookDetail = async () => {
     try {
-      const response = await authFetch(`http://localhost:8000/Ebiblioteka/books/${id}/detail`);
+      const response = await authFetch(`https://ebiblioteka-7.onrender.com/Ebiblioteka/books/${id}/detail`);
       if (!response.ok) throw new Error('Failed to fetch book detail');
       const data = await response.json();
       setBook(data);
@@ -45,7 +45,7 @@ function BookDetail() {
   const fetchBookComments = async (categoryId, bookId) => {
     try {
       const response = await authFetch(
-        `http://localhost:8000/Ebiblioteka/categories/${categoryId}/books/${bookId}/comments/list`
+        `https://ebiblioteka-7.onrender.com/Ebiblioteka/categories/${categoryId}/books/${bookId}/comments/list`
       );
       if (!response.ok) throw new Error('Failed to fetch comments');
       const data = await response.json();
@@ -60,7 +60,7 @@ function BookDetail() {
     setIsLoading(true);
     try {
       const response = await authFetch(
-        `http://localhost:8000/Ebiblioteka/categories/${book.category}/books/${book.id}/comments/create`,
+        `https://ebiblioteka-7.onrender.com/Ebiblioteka/categories/${book.category}/books/${book.id}/comments/create`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

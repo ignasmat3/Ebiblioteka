@@ -23,7 +23,7 @@ urlpatterns = [
     path('api/user/', smthsmth.as_view(), name='get_name'),
     path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
-    path('api/logout/', LogoutView.as_view(), name='logout'),
+    path('api/logout', LogoutView.as_view(), name='logout'),
 
     # Category Endpoints
     path('categories/list', views.category_list_get, name='category-list-get'),

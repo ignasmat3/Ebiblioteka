@@ -17,7 +17,7 @@ export async function authFetch(url, options = {}) {
 
   if (response.status === 401) {
     // Try refreshing the token
-    const refreshResponse = await fetch('http://localhost:8000/api/token/refresh/', {
+    const refreshResponse = await fetch('https://ebiblioteka-7.onrender.com/api/token/refresh/', {
       method: 'POST',
       credentials: 'include'
     });

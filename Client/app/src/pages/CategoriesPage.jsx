@@ -12,7 +12,7 @@ function CategoriesPage() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('http://localhost:8000/Ebiblioteka/categories/list');
+      const response = await fetch('https://ebiblioteka-7.onrender.com/Ebiblioteka/categories/list');
       if (!response.ok) {
         throw new Error('Failed to fetch categories');
       }

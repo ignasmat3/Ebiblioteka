@@ -17,7 +17,7 @@ function HomePage() {
 
   const fetchBooks = async () => {
     try {
-      const response = await authFetch('http://localhost:8000/Ebiblioteka/books/list');
+      const response = await authFetch('https://ebiblioteka-7.onrender.com/Ebiblioteka/books/list');
       if (!response.ok) {
         throw new Error('Failed to fetch books');
       }

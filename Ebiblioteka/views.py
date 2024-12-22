@@ -159,50 +159,55 @@ class smthsmth(APIView):
             "role": user_role
         })
 
-class LogoutView(APIView):
-    def post(self, request):
-        logger.info(f"Cookies in request: {request.COOKIES}")
 
-        # Extract refresh_token, access_token, and session_key from cookies
+class LogoutView(APIView):
+    """
+    We no longer parse or blacklist the access token. Instead, we rely on
+    marking the session as expired in the database.
+    """
+    def post(self, request):
+        print("=== [LOGOUT VIEW] POST method triggered ===")
+
+        # 1. Refresh token & session_key from cookies
         refresh_token = request.COOKIES.get('refresh_token')
-        access_token_raw = request.COOKIES.get('access_token')
         session_key = request.COOKIES.get('session_key')
 
-        if not refresh_token or not access_token_raw or not session_key:
-            return Response({'error': 'Missing tokens or session key.'}, status=status.HTTP_400_BAD_REQUEST)
+        # We won't even look at the Authorization header for the access token now
+        # because we are skipping token blacklisting altogether.
+
+        print(f"=== Debug: refresh_token = {refresh_token}")
+        print(f"=== Debug: session_key   = {session_key}")
+
+        # If you still require refresh_token and session_key:
+        if not refresh_token:
+            print("=== Debug: Missing refresh token. Returning 400. ===")
+            return Response({'error': 'Missing refresh token.'}, status=status.HTTP_401_BAD_REQUEST)
+
+        if not session_key:
+            print("=== Debug: Missing session key. Returning 400. ===")
+            return Response({'error': 'Missing session key.'}, status=status.HTTP_402_BAD_REQUEST)
 
         try:
-            # 1. Blacklist the access token
-            access_token = AccessToken(access_token_raw)
-            access_jti = access_token['jti']
-            access_exp = access_token['exp']
-            cache.set(f"blacklist_{access_jti}", "blacklisted", timeout=access_exp - int(access_token['iat']))
-
-            # 2. Blacklist the refresh token
-            refresh = RefreshToken(refresh_token)
-            refresh_jti = refresh['jti']
-            refresh_exp = refresh['exp']
-            cache.set(f"blacklist_{refresh_jti}", "blacklisted", timeout=refresh_exp - int(refresh['iat']))
-
-            # 3. Expire the session in the database
+            # 2. Mark the session in the DB as expired
+            print("=== Debug: Retrieving user session from DB ===")
             session = UserSession.objects.get(session_key=session_key, expired=False)
+            print(f"=== Debug: Found session (ID={session.id}). Marking as expired. ===")
             session.expired = True
             session.save()
 
-            # 4. Prepare response: delete cookies
-            response = Response({'success': 'Logged out successfully.'}, status=status.HTTP_200_OK)
+            # 3. Prepare response: delete cookies if you want
+            response = Response({'success': 'Session expired; user is logged out.'}, status=status.HTTP_200_OK)
             response.delete_cookie('session_key')
             response.delete_cookie('refresh_token')
-            response.delete_cookie('access_token')
 
-            logger.info(f"Access and refresh tokens blacklisted. Session expired.")
+            print("=== Debug: Logout successful. Returning 200 OK. ===")
             return response
 
         except UserSession.DoesNotExist:
-            logger.error("Session does not exist or already expired.")
+            print("=== Debug: Session does not exist or is already expired. Returning 400. ===")
             return Response({'error': 'Invalid or expired session key.'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            logger.error(f"Error during logout: {str(e)}")
+            print(f"=== Debug: Exception caught: {str(e)} ===")
             return Response({'error': 'An error occurred during logout.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # ----------------- Book Views -----------------

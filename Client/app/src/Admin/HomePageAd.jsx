@@ -17,7 +17,7 @@ function HomePage() {
 
   const fetchBooks = async () => {
     try {
-      const response = await authFetch('http://localhost:8000/Ebiblioteka/books/list');
+      const response = await authFetch('https://ebiblioteka-7.onrender.com/Ebiblioteka/books/list');
       if (!response.ok) throw new Error('Failed to fetch books');
       const data = await response.json();
       setAllBooks(data);
@@ -56,7 +56,7 @@ function HomePage() {
   const handleDeleteBook = async (bookId) => {
     if (!window.confirm('Are you sure you want to delete this book?')) return;
     try {
-      const response = await authFetch(`http://localhost:8000/Ebiblioteka/books/${bookId}/delete`, {
+      const response = await authFetch(`https://ebiblioteka-7.onrender.com/Ebiblioteka/books/${bookId}/delete`, {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Failed to delete book');

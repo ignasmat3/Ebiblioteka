@@ -15,7 +15,7 @@ from datetime import timedelta
 
 import dj_database_url
 import os
-from tutorial.settings import DATABASES
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,31 +25,36 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY")
+SECRET_KEY = os.environ.get("SECRET_KEY", "4c1a37269795d754c9a2c98d6d386f97")
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = True
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(" ")
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "ebiblioteka-7.onrender.com 127.0.0.1 localhost").split(" ")
+
 
 AUTH_USER_MODEL = 'Ebiblioteka.User'
 # # Application definition
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': 'Elektro',
-#         'USER': 'Ignas',
-#         'PASSWORD': 'Hermis123',
-#         'HOST': 'database-1.cx8uac2m4ss9.eu-north-1.rds.amazonaws.com',
-#         'PORT': '5432',
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'Elektro',
+        'USER': 'Ignas',
+        'PASSWORD': 'Hermis123',
+        'HOST': 'database-1.cx8uac2m4ss9.eu-north-1.rds.amazonaws.com',
+        'PORT': '5432',
+    }
+}
+# database_url = os.environ.get("DATABASE_URL")
+# DATABASES["default"] = dj_database_url.parse(database_url)
+
 database_url = os.environ.get("DATABASE_URL")
 DATABASES["default"] = dj_database_url.parse(database_url)
+
 # postgresql://elektro_user:8EvWqc59ly4UHbOtu0PEYDAaoSkpvbmR@dpg-ctjdf83qf0us739b93l0-a.frankfurt-postgres.render.com/elektro
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=180),
@@ -107,6 +112,9 @@ REST_FRAMEWORK = {
 }
 
 MIDDLEWARE = [
+    # CORS middleware must be high up
+    'corsheaders.middleware.CorsMiddleware',
+
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -114,7 +122,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'djangoProject2.urls'
@@ -179,5 +186,5 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'djangoProject2.settings')
 CORS_ALLOW_ALL_ORIGINS = True
