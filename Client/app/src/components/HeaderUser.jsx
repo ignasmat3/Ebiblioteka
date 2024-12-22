@@ -9,7 +9,7 @@ function HeaderUser() {
     const confirmLogout = window.confirm('Are you sure you want to log out?');
     if (confirmLogout) {
       try {
-        const response = await fetch('https://ebiblioteka-7.onrender.com/Ebiblioteka/api/logout/', {
+        const response = await fetch('https://ebiblioteka-7.onrender.com/Ebiblioteka/api/logout', {
           method: 'POST',
           credentials: 'include',
         });
