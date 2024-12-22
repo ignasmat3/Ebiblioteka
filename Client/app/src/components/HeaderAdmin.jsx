@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import './Header.css';
 
 function HeaderAdmin() {
@@ -33,9 +34,9 @@ function HeaderAdmin() {
 
         <nav className={`nav ${menuOpen ? 'active' : ''}`}>
           <ul className="nav-list">
-            <li><a href="/admin" className="nav-link">Home</a></li>
-            <li><a href="/admin/categoriesad" className="nav-link">Categories</a></li>
-            <li><a href="/admin/usereditad" className="nav-link">Users</a></li>
+            <li><Link to="/admin" className="nav-link">Home</Link></li>
+            <li><Link to="/admin/categoriesad" className="nav-link">Categories</Link></li>
+            <li><Link to="/admin/usereditad" className="nav-link">Users</Link></li>
             <li>
               <button onClick={logout} className="logout-button-link">Logout</button>
             </li>

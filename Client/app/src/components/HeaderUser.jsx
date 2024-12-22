@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import './Header.css';
 
 function HeaderUser() {
@@ -50,9 +51,9 @@ function HeaderUser() {
 
         <nav className={`nav ${menuOpen ? 'active' : ''}`}>
           <ul className="nav-list">
-            <li><a href="/features" className="nav-link">Home</a></li>
-            <li><a href="/features/categoriesus" className="nav-link">Categories</a></li>
-            <li><a href="/features/useredit" className="nav-link">Profile Info</a></li>
+            <li><Link to="/features" className="nav-link">Home</Link></li>
+            <li><Link to="/features/categoriesus" className="nav-link">Categories</Link></li>
+            <li><Link to="/features/useredit" className="nav-link">Profile Info</Link></li>
             <li><button onClick={logout} className="logout-button-link">Logout</button></li>
           </ul>
         </nav>
