@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import './Header.css'; // Make sure the updated CSS file is here
 
 function Header() {
@@ -24,10 +25,11 @@ function Header() {
 
         <nav className={`nav ${menuOpen ? 'active' : ''}`}>
           <ul className="nav-list">
-            <li><a href="/" className="nav-link">Home</a></li>
-            <li><a href="/categories" className="nav-link">Categories</a></li>
-            <li><a href="/login" className="nav-link">Login</a></li>
-            <li><a href="/register" className="nav-link">Register</a></li>
+            {/* Use Link components for navigation */}
+            <li><Link to="/" className="nav-link">Home</Link></li>
+            <li><Link to="/categories" className="nav-link">Categories</Link></li>
+            <li><Link to="/login" className="nav-link">Login</Link></li>
+            <li><Link to="/register" className="nav-link">Register</Link></li>
           </ul>
         </nav>
       </div>
