@@ -49,7 +49,7 @@ function HomePage() {
   };
 
   const handleBookClick = (bookId) => {
-    navigate(`/categories`);
+    navigate(`/books/${bookId}`);
   };
 
   return (
