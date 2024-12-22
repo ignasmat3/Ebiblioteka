@@ -32,7 +32,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "4c1a37269795d754c9a2c98d6d386f97")
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
 
-CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_CREDENTIALS = False
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "ebiblioteka-7.onrender.com 127.0.0.1 localhost").split(" ")
 
@@ -88,6 +88,7 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
 INSTALLED_APPS = [
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -96,7 +97,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'Ebiblioteka.apps.EbibliotekaConfig',
     'rest_framework',
-    'corsheaders',
     'drf_yasg',
     'rest_framework_simplejwt',
 
