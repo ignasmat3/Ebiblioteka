@@ -187,4 +187,8 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'djangoProject2.settings')
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "https://ebiblioteka-o9t8.vercel.app/",
+    "https://ebiblioteka-7.onrender.com",
+    # Add any other domains that need access
+]
