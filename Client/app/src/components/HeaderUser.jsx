@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom'; // Import useNavigate
 import './Header.css';
 
 function HeaderUser() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate(); // Initialize the navigate function
 
   const logout = async () => {
     const confirmLogout = window.confirm('Are you sure you want to log out?');
@@ -14,12 +15,13 @@ function HeaderUser() {
           credentials: 'include',
         });
 
+        // Clear local storage regardless of success or failure
         localStorage.removeItem('access_token');
         localStorage.removeItem('user_role');
         localStorage.removeItem('username');
 
         if (response.ok) {
-          window.location.href = '/';
+          navigate('/'); // Redirect using React Router
         } else {
           console.error('Logout failed');
           alert('Failed to log out. Please try again.');
